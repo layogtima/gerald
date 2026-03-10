@@ -1,0 +1,6 @@
+name = "neighborhood-watch"
+compatibility_date = "2026-03-10"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./build/web"
