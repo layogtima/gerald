@@ -9,6 +9,7 @@ import 'components/background.dart';
 import 'components/binocular_overlay.dart';
 import 'components/gerald_mutter.dart';
 import 'components/hud.dart';
+import 'components/missed_popup.dart';
 import 'components/npc.dart';
 import 'components/observation_zone.dart';
 import 'components/score_popup.dart';
@@ -214,6 +215,8 @@ class NeighborhoodWatchGame extends FlameGame {
   }
 
   void onNpcExpired(Npc npc) {
+    // "MISSED!" popup at NPC position
+    world.add(MissedPopup(worldPosition: npc.absolutePosition));
     // Screen shake for missed NPC
     _screenShake();
   }
@@ -268,10 +271,23 @@ class NeighborhoodWatchGame extends FlameGame {
       zone.clearNpc();
     }
 
+    gameState = GameState.roundEnd;
+
     if (reportsFiledThisRound >= currentConfig.quota) {
-      // Passed this round
+      // Show round result overlay briefly, then proceed
+      overlays.add('round_result');
+    } else {
+      // Failed — show result then game over
+      overlays.add('round_result');
+    }
+  }
+
+  /// Called from round result overlay after the player acknowledges
+  void onRoundResultDismissed() {
+    overlays.remove('round_result');
+
+    if (reportsFiledThisRound >= currentConfig.quota) {
       if (currentRound >= 4) {
-        // Won the game!
         gameState = GameState.gameOver;
         overlays.add('game_over_win');
       } else {
@@ -279,7 +295,6 @@ class NeighborhoodWatchGame extends FlameGame {
         startRound();
       }
     } else {
-      // Failed
       gameState = GameState.gameOver;
       overlays.add('game_over_lose');
     }
