@@ -13,7 +13,7 @@ class ObservationZone extends PositionComponent
   Npc? _currentNpc;
 
   ObservationZone({required Vector2 position, required this.label})
-      : super(position: position, size: Vector2(120, 120));
+      : super(position: position, size: Vector2(130, 130));
 
   bool get hasNpc => _currentNpc != null;
 

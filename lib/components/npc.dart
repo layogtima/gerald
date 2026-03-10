@@ -35,11 +35,25 @@ class Npc extends PositionComponent
     Activity.talkingOnPhone: ui.Color(0xFFE91E63),
   };
 
+  // Activity emoji indicators
+  static const _activityEmojis = <Activity, String>{
+    Activity.wateringPlants: '🌱',
+    Activity.carryingGroceries: '🛒',
+    Activity.doingYoga: '🧘',
+    Activity.walkingDog: '🐕',
+    Activity.readingOnPorch: '📖',
+    Activity.receivingPackage: '📦',
+    Activity.leavingHouseEarly: '🌅',
+    Activity.barbecuing: '🔥',
+    Activity.washingCar: '🚗',
+    Activity.talkingOnPhone: '📱',
+  };
+
   Npc({
     required this.activityData,
     required this.visibilitySeconds,
     required this.parentZone,
-  }) : super(size: Vector2(80, 100));
+  }) : super(size: Vector2(100, 110));
 
   @override
   Future<void> onLoad() async {
@@ -133,18 +147,39 @@ class Npc extends PositionComponent
       );
     }
 
-    // Activity icon indicator
-    final textPainter = TextPainter(
+    // Activity emoji indicator
+    final emoji = _activityEmojis[activityData.activity] ?? '!';
+    final emojiPainter = TextPainter(
       text: TextSpan(
-        text: '!',
+        text: emoji,
         style: TextStyle(
+          fontSize: 28,
           color: ui.Color.fromARGB(alpha, 255, 255, 255),
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
         ),
       ),
       textDirection: ui.TextDirection.ltr,
     )..layout();
-    textPainter.paint(canvas, ui.Offset(size.x / 2 - 5, size.y / 2 - 14));
+    emojiPainter.paint(
+      canvas,
+      ui.Offset(size.x / 2 - emojiPainter.width / 2, size.y * 0.2),
+    );
+
+    // Activity name label below
+    final labelPainter = TextPainter(
+      text: TextSpan(
+        text: activityData.displayName,
+        style: TextStyle(
+          color: ui.Color.fromARGB(alpha, 255, 255, 255),
+          fontSize: 9,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      textDirection: ui.TextDirection.ltr,
+      textAlign: ui.TextAlign.center,
+    )..layout(maxWidth: size.x);
+    labelPainter.paint(
+      canvas,
+      ui.Offset(size.x / 2 - labelPainter.width / 2, size.y * 0.6),
+    );
   }
 }

@@ -45,7 +45,7 @@ class MainMenuOverlay extends StatelessWidget {
             _buildButton('BEGIN SHIFT', () => game.startGame()),
             const SizedBox(height: 16),
             const Text(
-              'Click suspicious neighbors → File reports → Meet quota',
+              'Tap suspicious neighbors → File reports → Meet quota',
               style: TextStyle(
                 color: Color(0x88FFFFFF),
                 fontSize: 11,

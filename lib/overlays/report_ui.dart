@@ -14,60 +14,77 @@ class ReportUiOverlay extends StatelessWidget {
 
     final activity = npc.activityData;
 
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xF0F5F0DC),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFF8B7355), width: 2),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x44000000),
-              blurRadius: 12,
-              offset: Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Header
-            Row(
-              children: [
-                const Icon(Icons.assignment, color: Color(0xFF4A3728), size: 20),
-                const SizedBox(width: 8),
-                Text(
-                  'INCIDENT REPORT: ${activity.displayName.toUpperCase()}',
-                  style: const TextStyle(
-                    color: Color(0xFF4A3728),
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1,
-                  ),
-                ),
-                const Spacer(),
-                GestureDetector(
-                  onTap: () => game.onReportDismissed(),
-                  child: const Icon(Icons.close, color: Color(0xFF8B7355), size: 18),
+    return SafeArea(
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.6,
+            maxWidth: 600,
+          ),
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 12, left: 12, right: 12),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xF0F5F0DC),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFF8B7355), width: 2),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x44000000),
+                  blurRadius: 12,
+                  offset: Offset(0, 4),
                 ),
               ],
             ),
-            const Divider(color: Color(0xFF8B7355)),
-            // Three report options
-            for (final report in activity.reports) ...[
-              _ReportButton(
-                level: report.level,
-                text: report.text,
-                points: report.points,
-                onTap: () => game.onReportFiled(report),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Header
+                  Row(
+                    children: [
+                      const Icon(Icons.assignment,
+                          color: Color(0xFF4A3728), size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'INCIDENT REPORT: ${activity.displayName.toUpperCase()}',
+                          style: const TextStyle(
+                            color: Color(0xFF4A3728),
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1,
+                          ),
+                        ),
+                      ),
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => game.onReportDismissed(),
+                        child: const Padding(
+                          padding: EdgeInsets.all(8),
+                          child: Icon(Icons.close,
+                              color: Color(0xFF8B7355), size: 22),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Divider(color: Color(0xFF8B7355)),
+                  // Three report options
+                  for (final report in activity.reports) ...[
+                    _ReportButton(
+                      level: report.level,
+                      text: report.text,
+                      points: report.points,
+                      onTap: () => game.onReportFiled(report),
+                    ),
+                    if (report.level < 3) const SizedBox(height: 6),
+                  ],
+                ],
               ),
-              if (report.level < 3) const SizedBox(height: 6),
-            ],
-          ],
+            ),
+          ),
         ),
       ),
     );
@@ -117,9 +134,10 @@ class _ReportButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           color: _bgColor,
           borderRadius: BorderRadius.circular(6),
