@@ -59,6 +59,8 @@ class NeighborhoodWatchGame extends FlameGame {
       width: gameWidth,
       height: gameHeight,
     );
+    // Center viewfinder on the game world
+    camera.viewfinder.position = Vector2(gameWidth / 2, gameHeight / 2);
 
     // Background
     world.add(BackgroundComponent());
