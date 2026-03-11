@@ -6,39 +6,44 @@ import 'package:flutter/painting.dart';
 
 import '../game.dart';
 
-/// Atmospheric Gerald mutter text at the bottom of screen.
-/// Blends story mutters with tension-reactive mutters.
+/// Gerald mutter — only shows during/after choices, vague and atmospheric.
 class GeraldMutterComponent extends PositionComponent
     with HasGameReference<NeighborhoodWatchGame> {
   final Random _random = Random();
-  double _timer = 0;
-  double _nextMutterDelay = 3.0;
   String _currentMutter = '';
   double _mutterOpacity = 0;
   double _mutterLife = 0;
+  bool _wasReportOpen = false;
 
-  static const _boredMutters = [
-    '...',
-    'Slow night.',
-    'Maybe I should get a hobby.',
-    'The most exciting thing is a cloud.',
-    'Nothing to report. Literally nothing.',
-    "I'm watching grass grow. Literally.",
+  // Shown when clipboard opens (atmospheric)
+  static const _observingMutters = [
+    'Gerald steadies the binoculars...',
+    'Gerald leans forward...',
+    'Gerald squints...',
+    'The lens fogs slightly...',
+    'Gerald adjusts the focus...',
+    'Gerald holds his breath...',
+    'A long pause...',
   ];
 
-  static const _panicMutters = [
-    'They know.',
-    'THEY ALL KNOW.',
-    'I need more binoculars.',
-    'Is that a camera pointed at me?!',
-    'The walls have eyes. MY walls.',
-    "Trust no one. Especially the twins.",
-    'Every shadow is a suspect.',
+  // Shown after a choice (vague reactions)
+  static const _afterChoiceMild = [
+    'Hmm.',
+    '...noted.',
+    'Moving on.',
+    '...',
+  ];
+
+  static const _afterChoiceHigh = [
+    'I knew it.',
+    'This changes things.',
+    'They have no idea.',
+    'The file grows thicker.',
+    'Interesting.',
   ];
 
   @override
   Future<void> onLoad() async {
-    // Positioned in viewport space (bottom center)
     position = Vector2(
       NeighborhoodWatchGame.gameWidth / 2,
       game.gameHeight - 60,
@@ -46,43 +51,38 @@ class GeraldMutterComponent extends PositionComponent
     priority = 180;
   }
 
+  /// Called by game after a report is filed
+  void triggerReaction(int tension) {
+    if (tension <= 2) {
+      _currentMutter = _afterChoiceMild[_random.nextInt(_afterChoiceMild.length)];
+    } else {
+      _currentMutter = _afterChoiceHigh[_random.nextInt(_afterChoiceHigh.length)];
+    }
+    _mutterOpacity = 1.0;
+    _mutterLife = 0;
+  }
+
   @override
   void update(double dt) {
     super.update(dt);
 
-    if (game.gameState != GameState.playing) return;
-
-    _timer += dt;
-    if (_timer >= _nextMutterDelay && _mutterOpacity <= 0) {
-      _timer = 0;
-      _nextMutterDelay = 4.0 + _random.nextDouble() * 4.0;
-      _currentMutter = _pickMutter();
+    // Trigger observing mutter when clipboard first opens
+    final isReportOpen = game.gameState == GameState.reportOpen;
+    if (isReportOpen && !_wasReportOpen) {
+      _currentMutter = _observingMutters[_random.nextInt(_observingMutters.length)];
       _mutterOpacity = 1.0;
       _mutterLife = 0;
     }
+    _wasReportOpen = isReportOpen;
 
+    // Fade out after 2.5s
     if (_mutterOpacity > 0) {
       _mutterLife += dt;
-      if (_mutterLife > 2.0) {
+      if (_mutterLife > 2.5) {
         _mutterOpacity -= dt * 2;
         if (_mutterOpacity < 0) _mutterOpacity = 0;
       }
     }
-  }
-
-  String _pickMutter() {
-    final storyMutters = game.currentStory.mutters;
-    final tension = game.tension;
-
-    // 70% story mutters, 30% tension-reactive
-    if (_random.nextDouble() < 0.3) {
-      if (tension < 20) {
-        return _boredMutters[_random.nextInt(_boredMutters.length)];
-      } else if (tension > 60) {
-        return _panicMutters[_random.nextInt(_panicMutters.length)];
-      }
-    }
-    return storyMutters[_random.nextInt(storyMutters.length)];
   }
 
   @override
@@ -91,10 +91,10 @@ class GeraldMutterComponent extends PositionComponent
 
     final painter = TextPainter(
       text: TextSpan(
-        text: '\u2014 "$_currentMutter"',
+        text: _currentMutter,
         style: TextStyle(
-          color: ui.Color.fromRGBO(255, 170, 0, _mutterOpacity * 0.6),
-          fontSize: 14,
+          color: ui.Color.fromRGBO(255, 170, 0, _mutterOpacity * 0.5),
+          fontSize: 13,
           fontStyle: FontStyle.italic,
           fontFamily: 'monospace',
         ),

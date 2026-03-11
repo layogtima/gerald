@@ -11,7 +11,6 @@ class RoundIntroOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final config = game.currentConfig;
     final story = shiftStories[game.currentRound];
     final shiftLabel =
         game.currentRound == 0 ? 'PROLOGUE' : 'SHIFT ${game.currentRound}';
@@ -71,16 +70,7 @@ class RoundIntroOverlay extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-            Text(
-              'DURATION: ${config.roundDurationSeconds.toInt()} seconds',
-              style: const TextStyle(
-                color: Color(0xFF5A4A3A),
-                fontSize: 14,
-                fontFamily: 'monospace',
-              ),
-            ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             Text(
               story.briefing,
               style: const TextStyle(

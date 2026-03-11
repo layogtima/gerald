@@ -270,11 +270,14 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
     if (observedNpc == null) return;
 
     // Add tension (hidden)
-    tension += report.points;
+    tension += report.tension;
     reportsFiledThisRound++;
 
-    // Track for newspaper
+    // Track for newspaper (only non-dismiss choices)
     shiftReports.add((activity: observedNpc!.activityData, report: report));
+
+    // Trigger Gerald's reaction mutter
+    geraldMutter.triggerReaction(report.tension);
 
     // Remove NPC
     observedNpc!.parentZone.clearNpc();
