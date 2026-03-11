@@ -71,7 +71,7 @@ class GeraldMutterComponent extends PositionComponent
       text: TextSpan(
         text: '\u2014 "$_currentMutter"',
         style: TextStyle(
-          color: ui.Color.fromRGBO(0, 255, 65, _mutterOpacity * 0.6),
+          color: ui.Color.fromRGBO(255, 170, 0, _mutterOpacity * 0.6),
           fontSize: 14,
           fontStyle: FontStyle.italic,
           fontFamily: 'monospace',

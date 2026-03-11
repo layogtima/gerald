@@ -28,10 +28,10 @@ class ReportUiOverlay extends StatelessWidget {
             decoration: BoxDecoration(
               color: const Color(0xF00a0a0a),
               borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: const Color(0xFF00ff41), width: 1),
+              border: Border.all(color: const Color(0xFFFFAA00), width: 1),
               boxShadow: const [
                 BoxShadow(
-                  color: Color(0x3300ff41),
+                  color: Color(0x33FFAA00),
                   blurRadius: 12,
                 ),
               ],
@@ -45,13 +45,13 @@ class ReportUiOverlay extends StatelessWidget {
                   Row(
                     children: [
                       const Icon(Icons.assignment,
-                          color: Color(0xFF00ff41), size: 20),
+                          color: Color(0xFFFFAA00), size: 20),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           'INCIDENT: ${activity.displayName.toUpperCase()}',
                           style: const TextStyle(
-                            color: Color(0xFF00ff41),
+                            color: Color(0xFFFFAA00),
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
                             fontFamily: 'monospace',
@@ -65,12 +65,12 @@ class ReportUiOverlay extends StatelessWidget {
                         child: const Padding(
                           padding: EdgeInsets.all(8),
                           child: Icon(Icons.close,
-                              color: Color(0x8800ff41), size: 22),
+                              color: Color(0x88FFAA00), size: 22),
                         ),
                       ),
                     ],
                   ),
-                  const Divider(color: Color(0x4400ff41)),
+                  const Divider(color: Color(0x44FFAA00)),
                   // Three report options
                   for (final report in activity.reports) ...[
                     _ReportButton(
@@ -106,7 +106,7 @@ class _ReportButton extends StatelessWidget {
 
   Color get _accentColor {
     return switch (level) {
-      1 => const Color(0xFF00ff41),  // green — mild
+      1 => const Color(0xFFFFAA00),  // green — mild
       2 => const Color(0xFFffaa00),  // amber — suspicious
       3 => const Color(0xFFff4444),  // red — unhinged
       _ => const Color(0xFF888888),

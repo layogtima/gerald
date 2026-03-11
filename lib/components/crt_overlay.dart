@@ -29,7 +29,7 @@ class CrtOverlay extends PositionComponent
     // Very subtle green tint wash
     canvas.drawRect(
       ui.Rect.fromLTWH(0, 0, w, h),
-      ui.Paint()..color = const ui.Color(0x0600ff41),
+      ui.Paint()..color = const ui.Color(0x06FFAA00),
     );
 
     // Corner vignette (darken edges)

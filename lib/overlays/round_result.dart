@@ -13,7 +13,7 @@ class RoundResultOverlay extends StatelessWidget {
     final passed = game.reportsFiledThisRound >= config.quota;
 
     final accentColor = passed
-        ? const Color(0xFF00ff41)
+        ? const Color(0xFFFFAA00)
         : const Color(0xFFFF4444);
 
     return Center(
@@ -44,7 +44,7 @@ class RoundResultOverlay extends StatelessWidget {
             Text(
               'Reports Filed: ${game.reportsFiledThisRound}/${config.quota}',
               style: const TextStyle(
-                color: Color(0xCC00ff41),
+                color: Color(0xCCFFAA00),
                 fontSize: 18,
                 fontFamily: 'monospace',
               ),

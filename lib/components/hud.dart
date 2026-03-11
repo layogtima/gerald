@@ -61,7 +61,7 @@ class HudComponent extends PositionComponent
 
     // Shift indicator
     _drawText(canvas, 'SHIFT ${game.currentRound + 1}/5',
-        const ui.Offset(80, 9), 16, const ui.Color(0xFF00ff41));
+        const ui.Offset(80, 9), 16, const ui.Color(0xFFFFAA00));
 
     // Timer (center)
     final minutes = (game.roundTimeRemaining ~/ 60).toString().padLeft(2, '0');
@@ -69,13 +69,13 @@ class HudComponent extends PositionComponent
         (game.roundTimeRemaining.toInt() % 60).toString().padLeft(2, '0');
     final timerColor = game.roundTimeRemaining <= 15
         ? const ui.Color(0xFFFF4444)
-        : const ui.Color(0xFF00ff41);
+        : const ui.Color(0xFFFFAA00);
     _drawText(
         canvas, '$minutes:$seconds', ui.Offset(size.x / 2 - 25, 9), 18, timerColor);
 
     // Score
     _drawText(canvas, 'SCORE: ${game.score}',
-        ui.Offset(size.x - 340, 9), 16, const ui.Color(0xFF00ff41));
+        ui.Offset(size.x - 340, 9), 16, const ui.Color(0xFFFFAA00));
 
     // Quota
     final quotaMet = game.reportsFiledThisRound >= config.quota;
@@ -84,7 +84,7 @@ class HudComponent extends PositionComponent
       'REPORTS: ${game.reportsFiledThisRound}/${config.quota}',
       ui.Offset(size.x - 190, 9),
       16,
-      quotaMet ? const ui.Color(0xFF44FF44) : const ui.Color(0xFF00ff41),
+      quotaMet ? const ui.Color(0xFFFFCC44) : const ui.Color(0xFFFFAA00),
     );
 
     // --- Bottom bar ---

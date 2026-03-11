@@ -77,14 +77,14 @@ class BinocularOverlay extends PositionComponent
     // Subtle green tint on lens edges (CRT feel)
     final greenTint = ui.Paint()
       ..shader = RadialGradient(
-        colors: const [ui.Color(0x00000000), ui.Color(0x0800ff41)],
+        colors: const [ui.Color(0x00000000), ui.Color(0x08FFAA00)],
         stops: const [0.7, 1.0],
       ).createShader(ui.Rect.fromCircle(center: leftCenter, radius: radius));
     canvas.drawCircle(leftCenter, radius, greenTint);
 
     final greenTint2 = ui.Paint()
       ..shader = RadialGradient(
-        colors: const [ui.Color(0x00000000), ui.Color(0x0800ff41)],
+        colors: const [ui.Color(0x00000000), ui.Color(0x08FFAA00)],
         stops: const [0.7, 1.0],
       ).createShader(ui.Rect.fromCircle(center: rightCenter, radius: radius));
     canvas.drawCircle(rightCenter, radius, greenTint2);

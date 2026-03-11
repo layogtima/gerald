@@ -15,10 +15,10 @@ class MainMenuOverlay extends StatelessWidget {
         decoration: BoxDecoration(
           color: const Color(0xEE0a0a0a),
           borderRadius: BorderRadius.circular(4),
-          border: Border.all(color: const Color(0xFF00ff41), width: 1),
+          border: Border.all(color: const Color(0xFFFFAA00), width: 1),
           boxShadow: const [
             BoxShadow(
-              color: Color(0x3300ff41),
+              color: Color(0x33FFAA00),
               blurRadius: 20,
               spreadRadius: 2,
             ),
@@ -31,7 +31,7 @@ class MainMenuOverlay extends StatelessWidget {
               'GERALD IS\nWATCHING',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Color(0xFF00ff41),
+                color: Color(0xFFFFAA00),
                 fontSize: 42,
                 fontWeight: FontWeight.bold,
                 fontFamily: 'monospace',
@@ -44,7 +44,7 @@ class MainMenuOverlay extends StatelessWidget {
               'The neighborhood isn\'t going\nto watch itself.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Color(0x8800ff41),
+                color: Color(0x88FFAA00),
                 fontSize: 14,
                 fontStyle: FontStyle.italic,
                 fontFamily: 'monospace',
@@ -56,7 +56,7 @@ class MainMenuOverlay extends StatelessWidget {
             const Text(
               'Drag to scan  /  Tap to report  /  Meet quota',
               style: TextStyle(
-                color: Color(0x6600ff41),
+                color: Color(0x66FFAA00),
                 fontSize: 11,
                 fontFamily: 'monospace',
               ),
@@ -71,7 +71,7 @@ class MainMenuOverlay extends StatelessWidget {
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF00ff41),
+        backgroundColor: const Color(0xFFFFAA00),
         foregroundColor: const Color(0xFF0a0a0a),
         padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
         shape: RoundedRectangleBorder(

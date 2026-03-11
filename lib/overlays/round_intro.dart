@@ -17,9 +17,9 @@ class RoundIntroOverlay extends StatelessWidget {
         decoration: BoxDecoration(
           color: const Color(0xEE0a0a0a),
           borderRadius: BorderRadius.circular(4),
-          border: Border.all(color: const Color(0xFF00ff41), width: 1),
+          border: Border.all(color: const Color(0xFFFFAA00), width: 1),
           boxShadow: const [
-            BoxShadow(color: Color(0x2200ff41), blurRadius: 16),
+            BoxShadow(color: Color(0x22FFAA00), blurRadius: 16),
           ],
         ),
         child: Column(
@@ -28,7 +28,7 @@ class RoundIntroOverlay extends StatelessWidget {
             Text(
               'SHIFT ${game.currentRound + 1}',
               style: const TextStyle(
-                color: Color(0xFF00ff41),
+                color: Color(0xFFFFAA00),
                 fontSize: 36,
                 fontWeight: FontWeight.bold,
                 fontFamily: 'monospace',
@@ -39,7 +39,7 @@ class RoundIntroOverlay extends StatelessWidget {
             Text(
               'Quota: ${config.quota} reports',
               style: const TextStyle(
-                color: Color(0xCC00ff41),
+                color: Color(0xCCFFAA00),
                 fontSize: 18,
                 fontFamily: 'monospace',
               ),
@@ -48,7 +48,7 @@ class RoundIntroOverlay extends StatelessWidget {
             Text(
               'Time: ${config.roundDurationSeconds.toInt()}s',
               style: const TextStyle(
-                color: Color(0x8800ff41),
+                color: Color(0x88FFAA00),
                 fontSize: 14,
                 fontFamily: 'monospace',
               ),
@@ -57,7 +57,7 @@ class RoundIntroOverlay extends StatelessWidget {
             ElevatedButton(
               onPressed: () => game.beginPlaying(),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF00ff41),
+                backgroundColor: const Color(0xFFFFAA00),
                 foregroundColor: const Color(0xFF0a0a0a),
                 padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),

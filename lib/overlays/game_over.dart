@@ -13,7 +13,7 @@ class GameOverWinOverlay extends StatelessWidget {
       game: game,
       title: 'CAPTAIN OF THE YEAR',
       subtitle: 'All 5 shifts completed. The neighborhood is... "safe."',
-      titleColor: const Color(0xFF00ff41),
+      titleColor: const Color(0xFFFFAA00),
       score: game.score,
     );
   }
@@ -93,7 +93,7 @@ class _GameOverBase extends StatelessWidget {
             Text(
               'Final Score: $score',
               style: const TextStyle(
-                color: Color(0xFF00ff41),
+                color: Color(0xFFFFAA00),
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
                 fontFamily: 'monospace',

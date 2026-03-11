@@ -21,7 +21,7 @@
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Gerald is Watching">
-  <meta name="twitter:description" content="The neighborhood isn't going to watch itself. Drag your binoculars, spy on neighbors, file paranoid reports.">
+  <meta name="twitter:description" content="The neighborhood isn't going to watch itself.">
   <meta name="twitter:image" content="icons/Icon-512.png">
 
   <!-- iOS meta tags & icons -->
@@ -35,9 +35,6 @@
   <link rel="icon" type="image/png" href="favicon.png">
 
   <link rel="manifest" href="manifest.json">
-
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
 
   <!-- Google Fonts: VT323 (VCR/CRT style) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -56,8 +53,8 @@
         0deg,
         transparent,
         transparent 2px,
-        rgba(0, 255, 65, 0.03) 2px,
-        rgba(0, 255, 65, 0.03) 4px
+        rgba(255, 170, 0, 0.03) 2px,
+        rgba(255, 170, 0, 0.03) 4px
       );
       pointer-events: none;
     }
@@ -66,14 +63,14 @@
     @keyframes flicker {
       0%, 100% { opacity: 1; }
       92% { opacity: 1; }
-      93% { opacity: 0.8; }
+      93% { opacity: 0.85; }
       94% { opacity: 1; }
     }
 
     /* Glow pulse for the play button */
     @keyframes glow-pulse {
-      0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 65, 0.4), inset 0 0 20px rgba(0, 255, 65, 0.1); }
-      50% { box-shadow: 0 0 40px rgba(0, 255, 65, 0.7), inset 0 0 30px rgba(0, 255, 65, 0.2); }
+      0%, 100% { box-shadow: 0 0 20px rgba(255, 170, 0, 0.4), inset 0 0 20px rgba(255, 170, 0, 0.1); }
+      50% { box-shadow: 0 0 40px rgba(255, 170, 0, 0.7), inset 0 0 30px rgba(255, 170, 0, 0.2); }
     }
 
     /* REC blink */
@@ -84,6 +81,7 @@
 
     .glow-btn {
       animation: glow-pulse 2s ease-in-out infinite;
+      cursor: pointer;
     }
 
     .rec-dot {
@@ -97,9 +95,16 @@
       align-items: center;
       justify-content: center;
     }
+
+    #loading-text {
+      font-family: 'VT323', monospace;
+      color: #FFAA00;
+      font-size: 24px;
+      letter-spacing: 4px;
+    }
   </style>
 </head>
-<body class="bg-black text-green-400 vt323">
+<body class="bg-black vt323">
 
   <!-- ===== LANDING PAGE ===== -->
   <div id="landing" class="relative min-h-screen flex flex-col items-center justify-center px-4" style="animation: flicker 4s infinite;">
@@ -108,7 +113,7 @@
     <div class="crt-scanlines fixed inset-0 z-10"></div>
 
     <!-- Content -->
-    <div class="relative z-20 max-w-lg w-full text-center space-y-6">
+    <div class="relative z-20 max-w-lg w-full text-center space-y-8">
 
       <!-- REC indicator -->
       <div class="flex items-center justify-start gap-2 text-red-500 text-sm absolute top-4 left-4 sm:top-8 sm:left-8">
@@ -117,57 +122,38 @@
       </div>
 
       <!-- Title -->
-      <div class="space-y-2">
-        <h1 class="text-5xl sm:text-7xl text-green-400 tracking-wider leading-none">
+      <div class="space-y-3">
+        <h1 class="text-5xl sm:text-7xl tracking-wider leading-none" style="color: #FFAA00;">
           GERALD IS<br>WATCHING
         </h1>
-        <p class="text-green-600 text-lg sm:text-xl italic">
+        <p class="text-lg sm:text-xl italic" style="color: #996600;">
           The neighborhood isn't going to watch itself.
         </p>
       </div>
 
-      <!-- Concept -->
-      <p class="text-green-700 text-base sm:text-lg max-w-md mx-auto leading-relaxed">
-        Gerald lives in a neighborhood with 0% crime. That doesn't stop him from reporting every last suspicious activity through his binoculars.
-      </p>
-
-      <!-- Controls -->
-      <div class="border border-green-900 rounded-lg p-4 bg-black/50 text-left space-y-2 text-sm sm:text-base">
-        <div class="text-green-500 text-lg mb-2 text-center tracking-widest">[ CONTROLS ]</div>
-        <div class="text-green-600">&#9654; <span class="text-green-400">Drag</span> to scan the neighborhood</div>
-        <div class="text-green-600">&#9654; <span class="text-green-400">Tap</span> suspicious neighbors</div>
-        <div class="text-green-600">&#9654; <span class="text-green-400">File</span> paranoid incident reports</div>
-        <div class="text-green-600">&#9654; <span class="text-green-400">Meet quota</span> before your shift ends</div>
-      </div>
-
       <!-- Play Button -->
-      <button onclick="startGame()" class="glow-btn bg-green-500/20 border-2 border-green-400 text-green-300 text-3xl sm:text-4xl px-12 py-4 rounded-lg hover:bg-green-500/30 transition-colors tracking-widest">
+      <button onclick="startGame()" class="glow-btn w-full py-5 rounded-lg text-3xl sm:text-4xl tracking-widest transition-colors" style="background: rgba(255,170,0,0.15); border: 2px solid #FFAA00; color: #FFCC44;">
         &#9658; BEGIN SURVEILLANCE
       </button>
 
       <!-- Links -->
-      <div class="flex items-center justify-center gap-6 text-sm text-green-800">
-        <a href="https://github.com/layogtima/gerald" target="_blank" class="hover:text-green-400 transition-colors">
+      <div class="flex items-center justify-center gap-6 text-sm" style="color: #664400;">
+        <a href="https://github.com/layogtima/gerald" target="_blank" class="hover:opacity-80 transition-opacity" style="color: #996600;">
           [ GitHub ]
         </a>
         <span>|</span>
         <span>Flame Game Jam 2025</span>
       </div>
 
-      <!-- Changelog -->
-      <div class="text-left text-xs text-green-900 border-t border-green-900/50 pt-4 mt-4 space-y-1">
-        <div class="text-green-700 tracking-widest mb-1">// CHANGELOG</div>
-        <div>v0.2 - CRT aesthetic, touch binoculars, wider world</div>
-        <div>v0.1 - Core gameplay loop, 5 shifts, 10 activities</div>
-      </div>
-
       <!-- VCR timestamp -->
-      <div class="text-green-900 text-xs tracking-widest" id="vcr-clock"></div>
+      <div class="text-xs tracking-widest" style="color: #443300;" id="vcr-clock"></div>
     </div>
   </div>
 
   <!-- ===== GAME CONTAINER ===== -->
-  <div id="game-container" style="display: none;"></div>
+  <div id="game-container" style="display: none;">
+    <div id="loading-text">INITIALIZING SURVEILLANCE...</div>
+  </div>
 
   <script>
     // VCR clock on landing page
@@ -181,11 +167,22 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // Start game
+    // Track Flutter readiness
+    var _flutterReady = false;
+    var _appRunner = null;
+
+    // Start game: show container, then initialize Flutter engine
     function startGame() {
       document.getElementById('landing').style.display = 'none';
-      const gc = document.getElementById('game-container');
+      var gc = document.getElementById('game-container');
       gc.style.display = 'flex';
+
+      if (_flutterReady && _appRunner) {
+        // Flutter already initialized, just run
+        document.getElementById('loading-text')?.remove();
+        _appRunner.runApp();
+      }
+      // Otherwise the load handler below will run the app when ready
     }
   </script>
 
@@ -194,10 +191,35 @@
     window.addEventListener('load', function() {
       _flutter.loader.load({
         onEntrypointLoaded: async function(engineInitializer) {
-          const appRunner = await engineInitializer.initializeEngine({
-            hostElement: document.getElementById('game-container'),
-          });
-          await appRunner.runApp();
+          var gc = document.getElementById('game-container');
+
+          // Wait for game container to be visible before initializing
+          function tryInit() {
+            if (gc.style.display === 'none') {
+              // Not visible yet, wait for startGame()
+              _flutterReady = true;
+              _appRunner = {
+                runApp: async function() {
+                  document.getElementById('loading-text')?.remove();
+                  var runner = await engineInitializer.initializeEngine({
+                    hostElement: gc,
+                  });
+                  await runner.runApp();
+                }
+              };
+              return;
+            }
+            // Already visible, init immediately
+            (async function() {
+              document.getElementById('loading-text')?.remove();
+              var runner = await engineInitializer.initializeEngine({
+                hostElement: gc,
+              });
+              await runner.runApp();
+            })();
+          }
+
+          tryInit();
         }
       });
     });
