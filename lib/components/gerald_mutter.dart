@@ -4,10 +4,10 @@ import 'dart:ui' as ui;
 import 'package:flame/components.dart';
 import 'package:flutter/painting.dart';
 
-import '../data/story.dart';
 import '../game.dart';
 
 /// Atmospheric Gerald mutter text at the bottom of screen.
+/// Blends story mutters with tension-reactive mutters.
 class GeraldMutterComponent extends PositionComponent
     with HasGameReference<NeighborhoodWatchGame> {
   final Random _random = Random();
@@ -16,6 +16,25 @@ class GeraldMutterComponent extends PositionComponent
   String _currentMutter = '';
   double _mutterOpacity = 0;
   double _mutterLife = 0;
+
+  static const _boredMutters = [
+    '...',
+    'Slow night.',
+    'Maybe I should get a hobby.',
+    'The most exciting thing is a cloud.',
+    'Nothing to report. Literally nothing.',
+    "I'm watching grass grow. Literally.",
+  ];
+
+  static const _panicMutters = [
+    'They know.',
+    'THEY ALL KNOW.',
+    'I need more binoculars.',
+    'Is that a camera pointed at me?!',
+    'The walls have eyes. MY walls.',
+    "Trust no one. Especially the twins.",
+    'Every shadow is a suspect.',
+  ];
 
   @override
   Future<void> onLoad() async {
@@ -37,8 +56,7 @@ class GeraldMutterComponent extends PositionComponent
     if (_timer >= _nextMutterDelay && _mutterOpacity <= 0) {
       _timer = 0;
       _nextMutterDelay = 4.0 + _random.nextDouble() * 4.0;
-      final mutters = game.currentStory.mutters;
-      _currentMutter = mutters[_random.nextInt(mutters.length)];
+      _currentMutter = _pickMutter();
       _mutterOpacity = 1.0;
       _mutterLife = 0;
     }
@@ -50,6 +68,21 @@ class GeraldMutterComponent extends PositionComponent
         if (_mutterOpacity < 0) _mutterOpacity = 0;
       }
     }
+  }
+
+  String _pickMutter() {
+    final storyMutters = game.currentStory.mutters;
+    final tension = game.tension;
+
+    // 70% story mutters, 30% tension-reactive
+    if (_random.nextDouble() < 0.3) {
+      if (tension < 20) {
+        return _boredMutters[_random.nextInt(_boredMutters.length)];
+      } else if (tension > 60) {
+        return _panicMutters[_random.nextInt(_panicMutters.length)];
+      }
+    }
+    return storyMutters[_random.nextInt(storyMutters.length)];
   }
 
   @override

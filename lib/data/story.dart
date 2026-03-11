@@ -1,16 +1,12 @@
-/// Story data for each shift — briefings, debriefs, and Gerald's mutters.
+/// Story data for each shift — briefings and Gerald's mutters.
 class ShiftStory {
   final String actTitle;
   final String briefing;
-  final String debriefPass;
-  final String debriefFail;
   final List<String> mutters;
 
   const ShiftStory({
     required this.actTitle,
     required this.briefing,
-    required this.debriefPass,
-    required this.debriefFail,
     required this.mutters,
   });
 }
@@ -24,10 +20,6 @@ const List<ShiftStory> shiftStories = [
     briefing:
         'Another quiet evening on Maple Drive. 0% crime rate — thanks to ME.\n\n'
         'Time to earn that Neighborhood Captain badge.',
-    debriefPass:
-        'All clear. As expected. Nobody escapes Gerald\'s watch.',
-    debriefFail:
-        'Unacceptable. Even the easiest shift. Maybe this isn\'t for you.',
     mutters: [
       'Drag to scan the neighborhood...',
       'There! Someone suspicious. Tap them.',
@@ -43,10 +35,6 @@ const List<ShiftStory> shiftStories = [
     briefing:
         'Standard patrol. The neighborhood depends on you.\n\n'
         'Remember: there is no such thing as "too suspicious."',
-    debriefPass:
-        'Gerald approves. The neighborhood is "safer."',
-    debriefFail:
-        'Insufficient vigilance detected. Gerald is disappointed.',
     mutters: [
       'Hmm... suspicious.',
       'Nobody fools Gerald.',
@@ -64,10 +52,6 @@ const List<ShiftStory> shiftStories = [
     briefing:
         'Reports of "nothing happening" on Maple Drive.\n\n'
         'Suspicious in itself.',
-    debriefPass:
-        'Another shift in the books. Gerald\'s record remains spotless.',
-    debriefFail:
-        'The HOA will hear about this.',
     mutters: [
       'I see everything.',
       'They think they\'re clever.',
@@ -84,10 +68,6 @@ const List<ShiftStory> shiftStories = [
     briefing:
         'Multiple unusual reports from neighboring blocks.\n\n'
         'Stay sharp. Something feels... different tonight.',
-    debriefPass:
-        'Good work. But Gerald can\'t shake the feeling something is wrong.',
-    debriefFail:
-        'You missed too much. And some of those activities were genuinely strange.',
     mutters: [
       'Wait... that one might actually be suspicious.',
       'Is it me, or is everyone acting strange today?',
@@ -104,10 +84,6 @@ const List<ShiftStory> shiftStories = [
     briefing:
         'Gerald, we\'ve noticed some... patterns.\n\n'
         'Keep watching. Trust your instincts.',
-    debriefPass:
-        'The reports are getting stranger. Gerald isn\'t sure what\'s real anymore.',
-    debriefFail:
-        'You stopped paying attention at the worst possible time.',
     mutters: [
       'I don\'t like this. I don\'t like this at all.',
       'Are they... coordinating?',
@@ -125,11 +101,6 @@ const List<ShiftStory> shiftStories = [
         'Something is very wrong on Maple Drive.\n\n'
         'The neighbors are acting strange. All of them. At once.\n\n'
         'Keep watching. Someone has to.',
-    debriefPass:
-        'Gerald... check your mailbox. There\'s an incident report.\n\n'
-        'It\'s about you. Signed by every neighbor on the street.',
-    debriefFail:
-        'Gerald\'s parking spot has been reassigned. To everyone.',
     mutters: [
       'They\'re... watching me?',
       'How long have they known?',

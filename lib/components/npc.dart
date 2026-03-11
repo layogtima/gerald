@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'dart:ui' as ui;
 
 import 'package:flame/components.dart';
@@ -22,7 +21,6 @@ class Npc extends PositionComponent
   double _timer = 0;
   bool _frozen = false;
   bool _expired = false;
-  double _pulsePhase = 0;
 
   bool get _isWindow => parentZone.zoneType == ZoneType.window;
 
@@ -54,9 +52,6 @@ class Npc extends PositionComponent
   @override
   void update(double dt) {
     super.update(dt);
-
-    // Always animate pulse
-    _pulsePhase += dt * 3.5;
 
     if (_frozen || _expired) return;
 
@@ -99,27 +94,6 @@ class Npc extends PositionComponent
   void render(ui.Canvas canvas) {
     final alpha = (paint.color.a * 255).round().clamp(0, 255);
     final color = activityData.color.withAlpha(alpha);
-
-    // Pulsing glow ring behind NPC
-    if (!_expired && !_frozen) {
-      final pulse = (sin(_pulsePhase) + 1) / 2; // 0..1
-      final glowAlpha = (pulse * 80 + 40).round().clamp(0, 255);
-      final glowRadius = 4 + pulse * 4;
-      canvas.drawRRect(
-        ui.RRect.fromRectAndRadius(
-          ui.Rect.fromLTWH(
-            -glowRadius,
-            -glowRadius - 5,
-            size.x + glowRadius * 2,
-            size.y + glowRadius * 2 + 10,
-          ),
-          ui.Radius.circular(12 + glowRadius),
-        ),
-        ui.Paint()
-          ..color = color.withAlpha(glowAlpha)
-          ..maskFilter = const ui.MaskFilter.blur(ui.BlurStyle.normal, 6),
-      );
-    }
 
     // Frozen indicator glow (blue)
     if (_frozen) {
@@ -165,25 +139,6 @@ class Npc extends PositionComponent
         ..strokeWidth = 1.5,
     );
 
-    // Timer bar at bottom
-    final fraction = 1.0 - (_timer / visibilitySeconds).clamp(0.0, 1.0);
-    final barHeight = _isWindow ? 3.0 : 5.0;
-    canvas.drawRect(
-      ui.Rect.fromLTWH(0, size.y + 4, size.x, barHeight),
-      ui.Paint()..color = ui.Color.fromARGB((alpha * 0.3).round(), 0, 0, 0),
-    );
-    canvas.drawRRect(
-      ui.RRect.fromRectAndRadius(
-        ui.Rect.fromLTWH(0, size.y + 4, size.x * fraction, barHeight),
-        const ui.Radius.circular(2),
-      ),
-      ui.Paint()
-        ..color = (fraction > 0.3
-                ? const ui.Color(0xFF4CAF50)
-                : const ui.Color(0xFFF44336))
-            .withAlpha(alpha),
-    );
-
     // Activity emoji indicator
     final emojiFontSize = _isWindow ? 18.0 : 28.0;
     final emojiPainter = TextPainter(
@@ -220,26 +175,5 @@ class Npc extends PositionComponent
       ui.Offset(size.x / 2 - labelPainter.width / 2, size.y * 0.6),
     );
 
-    // "TAP!" hint text (skip for window zones — too cramped)
-    if (!_frozen && !_expired && !_isWindow) {
-      final tapAlpha = ((sin(_pulsePhase * 1.5) + 1) / 2 * 180 + 50)
-          .round()
-          .clamp(0, 255);
-      final tapPainter = TextPainter(
-        text: TextSpan(
-          text: 'TAP!',
-          style: TextStyle(
-            color: ui.Color.fromARGB(tapAlpha, 255, 255, 255),
-            fontSize: 11,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        textDirection: ui.TextDirection.ltr,
-      )..layout();
-      tapPainter.paint(
-        canvas,
-        ui.Offset(size.x / 2 - tapPainter.width / 2, size.y * 0.82),
-      );
-    }
   }
 }

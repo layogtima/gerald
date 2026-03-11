@@ -1,68 +1,50 @@
 import 'package:flutter/material.dart';
 
-import '../data/story.dart';
 import '../game.dart';
 
-class GameOverWinOverlay extends StatelessWidget {
+/// Single game over overlay with 3 tension-based endings.
+class GameOverOverlay extends StatelessWidget {
   final NeighborhoodWatchGame game;
 
-  const GameOverWinOverlay({super.key, required this.game});
+  const GameOverOverlay({super.key, required this.game});
 
   @override
   Widget build(BuildContext context) {
-    final story = shiftStories[5]; // Act 3 final shift
-    return _GameOverBase(
-      game: game,
-      title: 'THE WATCHER BECOMES THE WATCHED',
-      subtitle: story.debriefPass,
-      stampText: 'CASE CLOSED',
-      stampColor: const Color(0xFF2E6B35),
-      score: game.score,
-    );
-  }
-}
+    final tension = game.tension;
 
-class GameOverLoseOverlay extends StatelessWidget {
-  final NeighborhoodWatchGame game;
+    final String title;
+    final String subtitle;
+    final String stampText;
+    final Color stampColor;
 
-  const GameOverLoseOverlay({super.key, required this.game});
+    if (tension <= 30) {
+      // Low tension — boring ending
+      title = 'SLEEPY SUBURB';
+      subtitle =
+          'Gerald hangs up his binoculars. The neighborhood was boring after all.\n\n'
+          'Nobody was suspicious. Nobody was interesting. Gerald retires.';
+      stampText = 'RETIRED';
+      stampColor = const Color(0xFF607D8B);
+    } else if (tension <= 70) {
+      // Medium tension — normal ending
+      title = 'NEIGHBORHOOD CAPTAIN';
+      subtitle =
+          'Gerald receives his quarterly "Neighborhood Captain" certificate.\n\n'
+          "The HOA is satisfied. The parking spot is secure. Maple Drive is 'safe.'";
+      stampText = 'COMMENDED';
+      stampColor = const Color(0xFF2E6B35);
+    } else {
+      // High tension — paranoid twist
+      title = 'THE WATCHER BECOMES\nTHE WATCHED';
+      subtitle =
+          "Gerald checks his mailbox. There's an incident report.\n\n"
+          "It's about him. Signed by every neighbor on the street.\n\n"
+          "'Subject observed engaging in prolonged surveillance of residential area. "
+          "Recommend immediate intervention.'";
+      stampText = 'CASE CLOSED';
+      stampColor = const Color(0xFF8B1A1A);
+    }
 
-  @override
-  Widget build(BuildContext context) {
-    final act = actForShift(game.currentRound);
-    final subtitle = act >= 3
-        ? 'The neighbors have won. Gerald\'s surveillance career is over.\nYou failed at Shift ${game.currentRound}.'
-        : 'Your parking spot has been reassigned to Brenda.\nYou failed at Shift ${game.currentRound}.';
-    return _GameOverBase(
-      game: game,
-      title: 'PARKING SPOT REVOKED',
-      subtitle: subtitle,
-      stampText: 'TERMINATED',
-      stampColor: const Color(0xFF8B1A1A),
-      score: game.score,
-    );
-  }
-}
-
-class _GameOverBase extends StatelessWidget {
-  final NeighborhoodWatchGame game;
-  final String title;
-  final String subtitle;
-  final String stampText;
-  final Color stampColor;
-  final int score;
-
-  const _GameOverBase({
-    required this.game,
-    required this.title,
-    required this.subtitle,
-    required this.stampText,
-    required this.stampColor,
-    required this.score,
-  });
-
-  @override
-  Widget build(BuildContext context) {
     return Center(
       child: Container(
         padding: const EdgeInsets.all(32),
@@ -72,7 +54,10 @@ class _GameOverBase extends StatelessWidget {
           borderRadius: BorderRadius.circular(2),
           border: Border.all(color: const Color(0xFF8B7355), width: 1.5),
           boxShadow: const [
-            BoxShadow(color: Color(0x66000000), blurRadius: 16, offset: Offset(0, 4)),
+            BoxShadow(
+                color: Color(0x66000000),
+                blurRadius: 16,
+                offset: Offset(0, 4)),
           ],
         ),
         child: Column(
@@ -95,7 +80,7 @@ class _GameOverBase extends StatelessWidget {
               textAlign: TextAlign.center,
               style: const TextStyle(
                 color: Color(0xFF2A1A0A),
-                fontSize: 24,
+                fontSize: 22,
                 fontWeight: FontWeight.bold,
                 fontFamily: 'monospace',
                 letterSpacing: 2,
@@ -107,18 +92,9 @@ class _GameOverBase extends StatelessWidget {
               textAlign: TextAlign.center,
               style: const TextStyle(
                 color: Color(0xFF5A4A3A),
-                fontSize: 13,
+                fontSize: 12,
                 fontFamily: 'monospace',
-              ),
-            ),
-            const SizedBox(height: 14),
-            Text(
-              'Final Score: $score',
-              style: const TextStyle(
-                color: Color(0xFF2A1A0A),
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'monospace',
+                height: 1.4,
               ),
             ),
             const SizedBox(height: 16),

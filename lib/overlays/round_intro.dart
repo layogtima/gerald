@@ -73,15 +73,6 @@ class RoundIntroOverlay extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'QUOTA: ${config.quota} reports required',
-              style: const TextStyle(
-                color: Color(0xFF5A4A3A),
-                fontSize: 14,
-                fontFamily: 'monospace',
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
               'DURATION: ${config.roundDurationSeconds.toInt()} seconds',
               style: const TextStyle(
                 color: Color(0xFF5A4A3A),

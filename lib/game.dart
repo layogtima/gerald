@@ -12,10 +12,8 @@ import 'components/binocular_overlay.dart';
 import 'components/crt_overlay.dart';
 import 'components/gerald_mutter.dart';
 import 'components/hud.dart';
-import 'components/missed_popup.dart';
 import 'components/npc.dart';
 import 'components/observation_zone.dart';
-import 'components/score_popup.dart';
 import 'data/reports.dart';
 import 'data/round_config.dart';
 import 'data/story.dart';
@@ -45,10 +43,16 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
   // Game state
   GameState gameState = GameState.menu;
   int currentRound = 0; // 0-indexed, display as +1
-  int score = 0;
+  int tension = 0; // Hidden tension meter (0-100+), drives story
   int reportsFiledThisRound = 0;
   double roundTimeRemaining = 90.0;
   bool isZoomedIn = false;
+
+  // Track reports filed this shift for newspaper
+  List<({ActivityData activity, ReportOption report})> shiftReports = [];
+
+  // NPC spawn tracking
+  int _npcsSpawnedThisRound = 0;
 
   // Currently observed NPC
   Npc? observedNpc;
@@ -163,13 +167,15 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
 
   void startGame() {
     overlays.remove('main_menu');
-    score = 0;
+    tension = 0;
     currentRound = 0;
     startRound();
   }
 
   void startRound() {
     reportsFiledThisRound = 0;
+    _npcsSpawnedThisRound = 0;
+    shiftReports = [];
     roundTimeRemaining = currentConfig.roundDurationSeconds;
     _spawnTimer = 0;
     _nextSpawnDelay = 1.5; // First NPC spawns quickly
@@ -199,22 +205,31 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
 
     // Update round timer
     roundTimeRemaining -= dt;
-    if (roundTimeRemaining <= 0) {
-      roundTimeRemaining = 0;
+
+    // Check if shift should end: timer expired OR all NPCs spawned and none active
+    final allSpawned = _npcsSpawnedThisRound >= currentConfig.totalNpcs;
+    final noneActive = !zones.any((z) => z.hasNpc);
+
+    if (roundTimeRemaining <= 0 || (allSpawned && noneActive)) {
+      roundTimeRemaining = roundTimeRemaining.clamp(0, double.infinity);
       _endRound();
       return;
     }
 
-    // Spawn NPCs
-    _spawnTimer += dt;
-    if (_spawnTimer >= _nextSpawnDelay) {
-      _spawnTimer = 0;
-      _nextSpawnDelay = 1.5 + _random.nextDouble() * 2.0;
-      _trySpawnNpc();
+    // Spawn NPCs (only if we haven't spawned them all yet)
+    if (!allSpawned) {
+      _spawnTimer += dt;
+      if (_spawnTimer >= _nextSpawnDelay) {
+        _spawnTimer = 0;
+        _nextSpawnDelay = 1.5 + _random.nextDouble() * 2.0;
+        _trySpawnNpc();
+      }
     }
   }
 
   void _trySpawnNpc() {
+    if (_npcsSpawnedThisRound >= currentConfig.totalNpcs) return;
+
     // Count current NPCs
     final activeNpcs = zones.where((z) => z.hasNpc).length;
     if (activeNpcs >= currentConfig.maxSimultaneousNpcs) return;
@@ -234,6 +249,7 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
 
     final activityData = compatible[_random.nextInt(compatible.length)];
     zone.spawnNpc(activityData, currentConfig.npcVisibilitySeconds);
+    _npcsSpawnedThisRound++;
   }
 
   void onNpcTapped(Npc npc) {
@@ -253,17 +269,12 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
   void onReportFiled(ReportOption report) {
     if (observedNpc == null) return;
 
-    final npcPos = observedNpc!.absolutePosition;
-
-    // Add score
-    score += report.points;
+    // Add tension (hidden)
+    tension += report.points;
     reportsFiledThisRound++;
 
-    // Score popup
-    world.add(ScorePopup(
-      points: report.points,
-      worldPosition: npcPos,
-    ));
+    // Track for newspaper
+    shiftReports.add((activity: observedNpc!.activityData, report: report));
 
     // Remove NPC
     observedNpc!.parentZone.clearNpc();
@@ -278,7 +289,7 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
   }
 
   void onReportDismissed() {
-    // Player can close without filing (loses opportunity)
+    // Player can close without filing — no penalty
     if (observedNpc != null) {
       observedNpc!.unfreezeTimer();
       observedNpc = null;
@@ -292,10 +303,7 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
   }
 
   void onNpcExpired(Npc npc) {
-    // "MISSED!" popup at NPC position
-    world.add(MissedPopup(worldPosition: npc.absolutePosition));
-    // Screen shake for missed NPC
-    _screenShake();
+    // NPCs expire silently — no popup, no screen shake
   }
 
   void _zoomIn(Npc npc) {
@@ -321,20 +329,6 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
         EffectController(duration: 0.25, curve: Curves.easeInOut),
       ),
     );
-    // Zoom out back to wherever camera was (don't reset position)
-  }
-
-  void _screenShake() {
-    camera.viewfinder.add(
-      MoveEffect.by(
-        Vector2(4, 0),
-        EffectController(
-          duration: 0.05,
-          reverseDuration: 0.05,
-          repeatCount: 3,
-        ),
-      ),
-    );
   }
 
   void _endRound() {
@@ -344,37 +338,25 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
     }
 
     gameState = GameState.roundEnd;
-
-    if (reportsFiledThisRound >= currentConfig.quota) {
-      // Show round result overlay briefly, then proceed
-      overlays.add('round_result');
-    } else {
-      // Failed — show result then game over
-      overlays.add('round_result');
-    }
+    overlays.add('round_result');
   }
 
   /// Called from round result overlay after the player acknowledges
   void onRoundResultDismissed() {
     overlays.remove('round_result');
 
-    if (reportsFiledThisRound >= currentConfig.quota) {
-      if (currentRound >= 5) {
-        gameState = GameState.gameOver;
-        overlays.add('game_over_win');
-      } else {
-        currentRound++;
-        startRound();
-      }
-    } else {
+    if (currentRound >= 5) {
+      // All 6 shifts complete — game over with tension-based ending
       gameState = GameState.gameOver;
-      overlays.add('game_over_lose');
+      overlays.add('game_over');
+    } else {
+      currentRound++;
+      startRound();
     }
   }
 
   void returnToMenu() {
-    overlays.remove('game_over_win');
-    overlays.remove('game_over_lose');
+    overlays.remove('game_over');
     gameState = GameState.menu;
     overlays.add('main_menu');
   }

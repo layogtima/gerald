@@ -148,7 +148,6 @@ class ReportUiOverlay extends StatelessWidget {
                       _StampButton(
                         level: report.level,
                         text: report.text,
-                        points: report.points,
                         onTap: () => game.onReportFiled(report),
                       ),
                       if (report.level < 3) const SizedBox(height: 6),
@@ -167,13 +166,11 @@ class ReportUiOverlay extends StatelessWidget {
 class _StampButton extends StatelessWidget {
   final int level;
   final String text;
-  final int points;
   final VoidCallback onTap;
 
   const _StampButton({
     required this.level,
     required this.text,
-    required this.points,
     required this.onTap,
   });
 
@@ -250,16 +247,6 @@ class _StampButton extends StatelessWidget {
                   height: 1.3,
                   fontFamily: 'monospace',
                 ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              '+$points',
-              style: TextStyle(
-                color: _stampColor,
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'monospace',
               ),
             ),
           ],

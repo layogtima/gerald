@@ -35,10 +35,8 @@ class NeighborhoodWatchApp extends StatelessWidget {
                 ReportUiOverlay(game: game as NeighborhoodWatchGame),
             'round_result': (context, game) =>
                 RoundResultOverlay(game: game as NeighborhoodWatchGame),
-            'game_over_win': (context, game) =>
-                GameOverWinOverlay(game: game as NeighborhoodWatchGame),
-            'game_over_lose': (context, game) =>
-                GameOverLoseOverlay(game: game as NeighborhoodWatchGame),
+            'game_over': (context, game) =>
+                GameOverOverlay(game: game as NeighborhoodWatchGame),
           },
         ),
       ),
