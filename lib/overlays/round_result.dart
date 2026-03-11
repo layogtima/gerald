@@ -146,22 +146,82 @@ class RoundResultOverlay extends StatelessWidget {
     buf.writeln(_getOpening(shift, tension));
     buf.writeln();
 
-    // Observations from this shift
-    final filedReports =
-        reports.where((r) => r.report.tension > 0).toList();
-    if (filedReports.isEmpty) {
+    // Observations woven into letter prose
+    final filed = reports.where((r) => r.report.tension > 0).toList();
+    final dismissed = reports.where((r) => r.report.tension == 0).toList();
+
+    if (filed.isEmpty && dismissed.isNotEmpty) {
       buf.writeln(
-          'I observed nothing of concern during this shift. '
-          'The street was quiet. Perhaps too quiet.');
+          'I watched the street for the full duration of my shift. '
+          'Nothing struck me as unusual. Neighbors came and went. '
+          'It was all perfectly ordinary, which, I must confess, '
+          'I find the most unsettling outcome of all.');
+    } else if (filed.isEmpty) {
+      buf.writeln(
+          'The street was quiet tonight. No one came out. '
+          'No lights, no movement. I don\'t know what that means '
+          'but I felt I should note it.');
     } else {
-      for (int i = 0; i < filedReports.length; i++) {
-        final r = filedReports[i];
-        buf.writeln(
-            'OBSERVATION ${i + 1}: Subject seen '
-            '${r.activity.displayName.toLowerCase()}. '
-            'Assessment: "${r.report.text}"');
+      // Weave each observation into natural prose
+      for (int i = 0; i < filed.length; i++) {
+        final r = filed[i];
+        final name = r.activity.displayName.toLowerCase();
+        final assessment = r.report.text;
+
+        if (i == 0 && tension < 40) {
+          buf.write('I noticed a resident $name today. ');
+          buf.writeln('My assessment: $assessment');
+        } else if (i == 0 && tension < 70) {
+          buf.write(
+              'First, and I want this on record \u2014 '
+              'I observed a resident $name. ');
+          buf.writeln(assessment);
+        } else if (i == 0) {
+          buf.write(
+              'Let me get straight to it. '
+              'A resident was seen $name. ');
+          buf.writeln(assessment);
+        } else if (tension < 50) {
+          buf.write(
+              'I also saw someone $name. ');
+          buf.writeln(assessment);
+        } else {
+          buf.write(
+              'There\'s more. Another resident, $name. ');
+          buf.writeln(assessment);
+        }
+
         if (r.report.consequence != null) {
-          buf.writeln('  \u2192 Recommended action: ${r.report.consequence}');
+          if (tension < 40) {
+            buf.writeln(
+                'I believe the appropriate response would be: '
+                '${r.report.consequence}.');
+          } else if (tension < 70) {
+            buf.writeln(
+                'The Council should consider action. '
+                'Specifically: ${r.report.consequence}.');
+          } else {
+            buf.writeln(
+                'Something has to be done. '
+                '${r.report.consequence}. Please.');
+          }
+        }
+        buf.writeln();
+      }
+
+      // Mention dismissed observations naturally
+      if (dismissed.isNotEmpty) {
+        if (dismissed.length == 1) {
+          buf.writeln(
+              'I also observed a resident '
+              '${dismissed.first.activity.displayName.toLowerCase()}, '
+              'but it didn\'t seem worth reporting. '
+              'At least, not yet.');
+        } else {
+          buf.writeln(
+              'There were ${dismissed.length} other residents out '
+              'who didn\'t warrant a formal report. '
+              'I\'m keeping notes regardless.');
         }
         buf.writeln();
       }
