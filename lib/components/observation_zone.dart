@@ -1,6 +1,7 @@
 import 'package:flame/components.dart';
 
 import '../data/reports.dart';
+import '../data/zone_type.dart';
 import '../game.dart';
 import 'npc.dart';
 
@@ -8,10 +9,15 @@ import 'npc.dart';
 class ObservationZone extends PositionComponent
     with HasGameReference<NeighborhoodWatchGame> {
   final String label;
+  final ZoneType zoneType;
   Npc? _currentNpc;
 
-  ObservationZone({required Vector2 position, required this.label})
-      : super(position: position, size: Vector2(130, 130));
+  ObservationZone({
+    required Vector2 position,
+    required this.label,
+    required this.zoneType,
+    Vector2? zoneSize,
+  }) : super(position: position, size: zoneSize ?? Vector2(130, 130));
 
   bool get hasNpc => _currentNpc != null;
 

@@ -1,3 +1,7 @@
+import 'dart:ui' show Color;
+
+import 'zone_type.dart';
+
 /// All 10 activities and their 3 paranoia-level reports.
 enum Activity {
   wateringPlants,
@@ -27,11 +31,17 @@ class ReportOption {
 class ActivityData {
   final Activity activity;
   final String displayName;
+  final String emoji;
+  final Color color;
+  final List<ZoneType> compatibleZones;
   final List<ReportOption> reports;
 
   const ActivityData({
     required this.activity,
     required this.displayName,
+    required this.emoji,
+    required this.color,
+    required this.compatibleZones,
     required this.reports,
   });
 }
@@ -40,6 +50,9 @@ const List<ActivityData> allActivities = [
   ActivityData(
     activity: Activity.wateringPlants,
     displayName: 'Watering Plants',
+    emoji: '🌱',
+    color: Color(0xFF4CAF50),
+    compatibleZones: [ZoneType.yard],
     reports: [
       ReportOption(
         level: 1,
@@ -62,6 +75,9 @@ const List<ActivityData> allActivities = [
   ActivityData(
     activity: Activity.carryingGroceries,
     displayName: 'Carrying Groceries',
+    emoji: '🛒',
+    color: Color(0xFFFF9800),
+    compatibleZones: [ZoneType.yard, ZoneType.street],
     reports: [
       ReportOption(
         level: 1,
@@ -85,6 +101,9 @@ const List<ActivityData> allActivities = [
   ActivityData(
     activity: Activity.doingYoga,
     displayName: 'Doing Yoga',
+    emoji: '🧘',
+    color: Color(0xFF9C27B0),
+    compatibleZones: [ZoneType.yard],
     reports: [
       ReportOption(
         level: 1,
@@ -107,6 +126,9 @@ const List<ActivityData> allActivities = [
   ActivityData(
     activity: Activity.walkingDog,
     displayName: 'Walking a Small Dog',
+    emoji: '🐕',
+    color: Color(0xFF795548),
+    compatibleZones: [ZoneType.street],
     reports: [
       ReportOption(
         level: 1,
@@ -130,6 +152,9 @@ const List<ActivityData> allActivities = [
   ActivityData(
     activity: Activity.readingOnPorch,
     displayName: 'Reading on Porch',
+    emoji: '📖',
+    color: Color(0xFF2196F3),
+    compatibleZones: [ZoneType.yard, ZoneType.window],
     reports: [
       ReportOption(
         level: 1,
@@ -153,6 +178,9 @@ const List<ActivityData> allActivities = [
   ActivityData(
     activity: Activity.receivingPackage,
     displayName: 'Receiving a Package',
+    emoji: '📦',
+    color: Color(0xFFFFEB3B),
+    compatibleZones: [ZoneType.yard],
     reports: [
       ReportOption(
         level: 1,
@@ -176,6 +204,9 @@ const List<ActivityData> allActivities = [
   ActivityData(
     activity: Activity.leavingHouseEarly,
     displayName: 'Leaving the House Early',
+    emoji: '🌅',
+    color: Color(0xFF607D8B),
+    compatibleZones: [ZoneType.yard, ZoneType.street],
     reports: [
       ReportOption(
         level: 1,
@@ -198,6 +229,9 @@ const List<ActivityData> allActivities = [
   ActivityData(
     activity: Activity.barbecuing,
     displayName: 'Barbecuing',
+    emoji: '🔥',
+    color: Color(0xFFF44336),
+    compatibleZones: [ZoneType.yard],
     reports: [
       ReportOption(
         level: 1,
@@ -221,6 +255,9 @@ const List<ActivityData> allActivities = [
   ActivityData(
     activity: Activity.washingCar,
     displayName: 'Washing Car',
+    emoji: '🚗',
+    color: Color(0xFF00BCD4),
+    compatibleZones: [ZoneType.street],
     reports: [
       ReportOption(
         level: 1,
@@ -243,6 +280,9 @@ const List<ActivityData> allActivities = [
   ActivityData(
     activity: Activity.talkingOnPhone,
     displayName: 'Talking on Phone',
+    emoji: '📱',
+    color: Color(0xFFE91E63),
+    compatibleZones: [ZoneType.window, ZoneType.yard, ZoneType.street],
     reports: [
       ReportOption(
         level: 1,

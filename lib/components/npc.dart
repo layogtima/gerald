@@ -7,6 +7,7 @@ import 'package:flame/events.dart';
 import 'package:flutter/painting.dart';
 
 import '../data/reports.dart';
+import '../data/zone_type.dart';
 import '../game.dart';
 import 'observation_zone.dart';
 
@@ -23,42 +24,19 @@ class Npc extends PositionComponent
   bool _expired = false;
   double _pulsePhase = 0;
 
-  // Colors for different activities (placeholder art)
-  static const _activityColors = <Activity, ui.Color>{
-    Activity.wateringPlants: ui.Color(0xFF4CAF50),
-    Activity.carryingGroceries: ui.Color(0xFFFF9800),
-    Activity.doingYoga: ui.Color(0xFF9C27B0),
-    Activity.walkingDog: ui.Color(0xFF795548),
-    Activity.readingOnPorch: ui.Color(0xFF2196F3),
-    Activity.receivingPackage: ui.Color(0xFFFFEB3B),
-    Activity.leavingHouseEarly: ui.Color(0xFF607D8B),
-    Activity.barbecuing: ui.Color(0xFFF44336),
-    Activity.washingCar: ui.Color(0xFF00BCD4),
-    Activity.talkingOnPhone: ui.Color(0xFFE91E63),
-  };
-
-  // Activity emoji indicators
-  static const _activityEmojis = <Activity, String>{
-    Activity.wateringPlants: '🌱',
-    Activity.carryingGroceries: '🛒',
-    Activity.doingYoga: '🧘',
-    Activity.walkingDog: '🐕',
-    Activity.readingOnPorch: '📖',
-    Activity.receivingPackage: '📦',
-    Activity.leavingHouseEarly: '🌅',
-    Activity.barbecuing: '🔥',
-    Activity.washingCar: '🚗',
-    Activity.talkingOnPhone: '📱',
-  };
+  bool get _isWindow => parentZone.zoneType == ZoneType.window;
 
   Npc({
     required this.activityData,
     required this.visibilitySeconds,
     required this.parentZone,
-  }) : super(size: Vector2(100, 110));
+  }) : super();
 
   @override
   Future<void> onLoad() async {
+    // Window NPCs are smaller (head + upper body)
+    size = _isWindow ? Vector2(60, 65) : Vector2(100, 110);
+
     // Center in zone
     position = Vector2(
       (parentZone.size.x - size.x) / 2,
@@ -120,9 +98,7 @@ class Npc extends PositionComponent
   @override
   void render(ui.Canvas canvas) {
     final alpha = (paint.color.a * 255).round().clamp(0, 255);
-    final color = (_activityColors[activityData.activity] ??
-            const ui.Color(0xFF9E9E9E))
-        .withAlpha(alpha);
+    final color = activityData.color.withAlpha(alpha);
 
     // Pulsing glow ring behind NPC
     if (!_expired && !_frozen) {
@@ -170,19 +146,19 @@ class Npc extends PositionComponent
       ui.Paint()
         ..color = ui.Color.fromARGB(alpha, 0, 0, 0)
         ..style = ui.PaintingStyle.stroke
-        ..strokeWidth = 2,
+        ..strokeWidth = _isWindow ? 1.5 : 2,
     );
 
     // Head (circle on top)
+    final headRadius = _isWindow ? 12.0 : 18.0;
     canvas.drawCircle(
-      ui.Offset(size.x / 2, -5),
-      18,
+      ui.Offset(size.x / 2, -headRadius * 0.28),
+      headRadius,
       ui.Paint()..color = const ui.Color(0xFFFFE0BD).withAlpha(alpha),
     );
-    // Head outline
     canvas.drawCircle(
-      ui.Offset(size.x / 2, -5),
-      18,
+      ui.Offset(size.x / 2, -headRadius * 0.28),
+      headRadius,
       ui.Paint()
         ..color = ui.Color.fromARGB(alpha, 0, 0, 0)
         ..style = ui.PaintingStyle.stroke
@@ -191,13 +167,14 @@ class Npc extends PositionComponent
 
     // Timer bar at bottom
     final fraction = 1.0 - (_timer / visibilitySeconds).clamp(0.0, 1.0);
+    final barHeight = _isWindow ? 3.0 : 5.0;
     canvas.drawRect(
-      ui.Rect.fromLTWH(0, size.y + 6, size.x, 5),
+      ui.Rect.fromLTWH(0, size.y + 4, size.x, barHeight),
       ui.Paint()..color = ui.Color.fromARGB((alpha * 0.3).round(), 0, 0, 0),
     );
     canvas.drawRRect(
       ui.RRect.fromRectAndRadius(
-        ui.Rect.fromLTWH(0, size.y + 6, size.x * fraction, 5),
+        ui.Rect.fromLTWH(0, size.y + 4, size.x * fraction, barHeight),
         const ui.Radius.circular(2),
       ),
       ui.Paint()
@@ -208,12 +185,12 @@ class Npc extends PositionComponent
     );
 
     // Activity emoji indicator
-    final emoji = _activityEmojis[activityData.activity] ?? '!';
+    final emojiFontSize = _isWindow ? 18.0 : 28.0;
     final emojiPainter = TextPainter(
       text: TextSpan(
-        text: emoji,
+        text: activityData.emoji,
         style: TextStyle(
-          fontSize: 28,
+          fontSize: emojiFontSize,
           color: ui.Color.fromARGB(alpha, 255, 255, 255),
         ),
       ),
@@ -225,12 +202,13 @@ class Npc extends PositionComponent
     );
 
     // Activity name label below
+    final labelFontSize = _isWindow ? 7.0 : 9.0;
     final labelPainter = TextPainter(
       text: TextSpan(
         text: activityData.displayName,
         style: TextStyle(
           color: ui.Color.fromARGB(alpha, 255, 255, 255),
-          fontSize: 9,
+          fontSize: labelFontSize,
           fontWeight: FontWeight.bold,
         ),
       ),
@@ -242,8 +220,8 @@ class Npc extends PositionComponent
       ui.Offset(size.x / 2 - labelPainter.width / 2, size.y * 0.6),
     );
 
-    // "TAP!" hint text
-    if (!_frozen && !_expired) {
+    // "TAP!" hint text (skip for window zones — too cramped)
+    if (!_frozen && !_expired && !_isWindow) {
       final tapAlpha = ((sin(_pulsePhase * 1.5) + 1) / 2 * 180 + 50)
           .round()
           .clamp(0, 255);

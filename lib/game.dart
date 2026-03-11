@@ -18,6 +18,7 @@ import 'components/observation_zone.dart';
 import 'components/score_popup.dart';
 import 'data/reports.dart';
 import 'data/round_config.dart';
+import 'data/zone_type.dart';
 
 enum GameState {
   menu,
@@ -84,22 +85,33 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
     // Background
     world.add(BackgroundComponent());
 
-    // Create 10 observation zones spread across the wider world
+    // Observation zones aligned to background geometry:
+    // Houses bottom at y≈350, sidewalk at y≈416-448
+    final windowSize = Vector2(80, 70);
+    final yardSize = Vector2(120, 55);
+    final streetSize = Vector2(140, 35);
+
     zones = [
-      // Left section
-      ObservationZone(position: Vector2(80, 200), label: 'Far Left Yard'),
-      ObservationZone(position: Vector2(250, 150), label: 'Left Upstairs'),
-      ObservationZone(position: Vector2(180, 380), label: 'Left Porch'),
-      // Center-left
-      ObservationZone(position: Vector2(500, 160), label: 'Center Left Window'),
-      ObservationZone(position: Vector2(450, 400), label: 'Center Driveway'),
-      // Center-right
-      ObservationZone(position: Vector2(800, 150), label: 'Center Right Window'),
-      ObservationZone(position: Vector2(750, 380), label: 'Center Yard'),
-      // Right section
-      ObservationZone(position: Vector2(1100, 160), label: 'Right Upstairs'),
-      ObservationZone(position: Vector2(1050, 400), label: 'Right Porch'),
-      ObservationZone(position: Vector2(1350, 300), label: 'Far Right Yard'),
+      // Window zones (inside house walls, at upper window height)
+      ObservationZone(position: Vector2(60, 140), label: '1st Ave Window', zoneType: ZoneType.window, zoneSize: windowSize),
+      ObservationZone(position: Vector2(320, 120), label: '2nd Ave Window', zoneType: ZoneType.window, zoneSize: windowSize),
+      ObservationZone(position: Vector2(620, 150), label: '3rd Ave Window', zoneType: ZoneType.window, zoneSize: windowSize),
+      ObservationZone(position: Vector2(900, 130), label: '4th Ave Window', zoneType: ZoneType.window, zoneSize: windowSize),
+      ObservationZone(position: Vector2(1200, 145), label: '5th Ave Window', zoneType: ZoneType.window, zoneSize: windowSize),
+      ObservationZone(position: Vector2(1500, 125), label: '6th Ave Window', zoneType: ZoneType.window, zoneSize: windowSize),
+
+      // Yard zones (front of each house, grass area)
+      ObservationZone(position: Vector2(75, 355), label: '1st Ave Yard', zoneType: ZoneType.yard, zoneSize: yardSize),
+      ObservationZone(position: Vector2(340, 355), label: '2nd Ave Yard', zoneType: ZoneType.yard, zoneSize: yardSize),
+      ObservationZone(position: Vector2(635, 355), label: '3rd Ave Yard', zoneType: ZoneType.yard, zoneSize: yardSize),
+      ObservationZone(position: Vector2(925, 355), label: '4th Ave Yard', zoneType: ZoneType.yard, zoneSize: yardSize),
+      ObservationZone(position: Vector2(1215, 355), label: '5th Ave Yard', zoneType: ZoneType.yard, zoneSize: yardSize),
+      ObservationZone(position: Vector2(1530, 355), label: '6th Ave Yard', zoneType: ZoneType.yard, zoneSize: yardSize),
+
+      // Street zones (on upper sidewalk)
+      ObservationZone(position: Vector2(250, 420), label: 'Sidewalk West', zoneType: ZoneType.street, zoneSize: streetSize),
+      ObservationZone(position: Vector2(850, 420), label: 'Sidewalk Central', zoneType: ZoneType.street, zoneSize: streetSize),
+      ObservationZone(position: Vector2(1450, 420), label: 'Sidewalk East', zoneType: ZoneType.street, zoneSize: streetSize),
     ];
     world.addAll(zones);
 
@@ -209,10 +221,14 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
     final emptyZones = zones.where((z) => !z.hasNpc).toList();
     if (emptyZones.isEmpty) return;
 
-    // Pick random zone and activity
+    // Pick random zone, then pick a compatible activity
     final zone = emptyZones[_random.nextInt(emptyZones.length)];
-    final activityData = allActivities[_random.nextInt(allActivities.length)];
+    final compatible = allActivities
+        .where((a) => a.compatibleZones.contains(zone.zoneType))
+        .toList();
+    if (compatible.isEmpty) return;
 
+    final activityData = compatible[_random.nextInt(compatible.length)];
     zone.spawnNpc(activityData, currentConfig.npcVisibilitySeconds);
   }
 
