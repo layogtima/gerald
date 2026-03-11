@@ -5,88 +5,105 @@ import 'package:flutter/painting.dart';
 
 import '../game.dart';
 
-/// Draws a binocular vignette effect — two overlapping circles with dark outside.
-/// Rendered in viewport space so it stays fixed on screen while camera pans.
+/// Draws a realistic binocular vignette — two soft-edged circles with blurred
+/// falloff, bright centers, and natural overlap. No hard borders.
 class BinocularOverlay extends PositionComponent
     with HasGameReference<NeighborhoodWatchGame> {
   @override
   Future<void> onLoad() async {
-    // Use viewport dimensions (what the camera shows), not world dimensions
     size = Vector2(NeighborhoodWatchGame.gameWidth, game.gameHeight);
-    priority = 100; // Always on top
+    priority = 100;
   }
 
   @override
   void render(ui.Canvas canvas) {
     final w = size.x;
     final h = size.y;
-    final radius = h * 0.48;
-    final separation = w * 0.15;
+    final shortSide = w < h ? w : h;
+    final radius = shortSide * 0.52;
+    final separation = w * 0.12;
 
-    // Create a path that covers the whole viewport
-    final outerPath = ui.Path()..addRect(ui.Rect.fromLTWH(0, 0, w, h));
-
-    // Cut out two circles (binocular shape)
     final leftCenter = ui.Offset(w / 2 - separation, h / 2);
     final rightCenter = ui.Offset(w / 2 + separation, h / 2);
+    final fullRect = ui.Rect.fromLTWH(0, 0, w, h);
 
-    final holePath = ui.Path()
-      ..addOval(ui.Rect.fromCircle(center: leftCenter, radius: radius))
-      ..addOval(ui.Rect.fromCircle(center: rightCenter, radius: radius));
+    // Use saveLayer for compositing: draw dark overlay, then punch soft holes
+    canvas.saveLayer(fullRect, ui.Paint());
 
-    // Combine: outer minus holes
-    final combinedPath =
-        ui.Path.combine(ui.PathOperation.difference, outerPath, holePath);
+    // Dark surrounding overlay
+    canvas.drawRect(fullRect, ui.Paint()..color = const ui.Color(0xF0000000));
 
-    canvas.drawPath(
-      combinedPath,
-      ui.Paint()..color = const ui.Color(0xEE000000),
+    // Punch out left lens with soft radial gradient (dstOut erases the dark layer)
+    final lensGradient = RadialGradient(
+      center: Alignment.center,
+      radius: 1.0,
+      colors: const [
+        ui.Color(0xFFFFFFFF), // fully erase center
+        ui.Color(0xFFFFFFFF),
+        ui.Color(0xAAFFFFFF), // start fading
+        ui.Color(0x00FFFFFF), // fully transparent = dark stays
+      ],
+      stops: const [0.0, 0.45, 0.7, 1.0],
+    );
+    canvas.drawCircle(
+      leftCenter,
+      radius,
+      ui.Paint()
+        ..shader = lensGradient
+            .createShader(ui.Rect.fromCircle(center: leftCenter, radius: radius))
+        ..blendMode = ui.BlendMode.dstOut,
     );
 
-    // Circle borders for definition
-    final borderPaint = ui.Paint()
-      ..color = const ui.Color(0xFF222222)
-      ..style = ui.PaintingStyle.stroke
-      ..strokeWidth = 4;
-    canvas.drawCircle(leftCenter, radius, borderPaint);
-    canvas.drawCircle(rightCenter, radius, borderPaint);
+    // Punch out right lens
+    canvas.drawCircle(
+      rightCenter,
+      radius,
+      ui.Paint()
+        ..shader = lensGradient
+            .createShader(ui.Rect.fromCircle(center: rightCenter, radius: radius))
+        ..blendMode = ui.BlendMode.dstOut,
+    );
 
-    // Inner ring detail
-    final innerRing = ui.Paint()
-      ..color = const ui.Color(0xFF1a1a1a)
-      ..style = ui.PaintingStyle.stroke
-      ..strokeWidth = 2;
-    canvas.drawCircle(leftCenter, radius - 5, innerRing);
-    canvas.drawCircle(rightCenter, radius - 5, innerRing);
+    canvas.restore();
 
-    // Radial gradient on edges for depth / vignette
-    final gradientPaint = ui.Paint()
-      ..shader = RadialGradient(
-        colors: const [ui.Color(0x00000000), ui.Color(0x55000000)],
-        stops: const [0.65, 1.0],
-      ).createShader(ui.Rect.fromCircle(center: leftCenter, radius: radius));
-    canvas.drawCircle(leftCenter, radius, gradientPaint);
+    // Subtle brightness boost in center of each lens (bright center effect)
+    final brightGradient = RadialGradient(
+      colors: const [ui.Color(0x0DFFFFFF), ui.Color(0x00FFFFFF)],
+      stops: const [0.0, 0.4],
+    );
+    canvas.drawCircle(
+      leftCenter,
+      radius,
+      ui.Paint()
+        ..shader = brightGradient
+            .createShader(ui.Rect.fromCircle(center: leftCenter, radius: radius)),
+    );
+    canvas.drawCircle(
+      rightCenter,
+      radius,
+      ui.Paint()
+        ..shader = brightGradient
+            .createShader(ui.Rect.fromCircle(center: rightCenter, radius: radius)),
+    );
 
-    final gradientPaint2 = ui.Paint()
-      ..shader = RadialGradient(
-        colors: const [ui.Color(0x00000000), ui.Color(0x55000000)],
-        stops: const [0.65, 1.0],
-      ).createShader(ui.Rect.fromCircle(center: rightCenter, radius: radius));
-    canvas.drawCircle(rightCenter, radius, gradientPaint2);
-
-    // Subtle green tint on lens edges (CRT feel)
-    final greenTint = ui.Paint()
-      ..shader = RadialGradient(
-        colors: const [ui.Color(0x00000000), ui.Color(0x08FFAA00)],
-        stops: const [0.7, 1.0],
-      ).createShader(ui.Rect.fromCircle(center: leftCenter, radius: radius));
-    canvas.drawCircle(leftCenter, radius, greenTint);
-
-    final greenTint2 = ui.Paint()
-      ..shader = RadialGradient(
-        colors: const [ui.Color(0x00000000), ui.Color(0x08FFAA00)],
-        stops: const [0.7, 1.0],
-      ).createShader(ui.Rect.fromCircle(center: rightCenter, radius: radius));
-    canvas.drawCircle(rightCenter, radius, greenTint2);
+    // Very subtle warm tint on the glass (barely visible)
+    final tintGradient = RadialGradient(
+      colors: const [ui.Color(0x00000000), ui.Color(0x06FFE8C0)],
+      stops: const [0.5, 1.0],
+    );
+    canvas.drawCircle(
+      leftCenter,
+      radius,
+      ui.Paint()
+        ..shader = tintGradient
+            .createShader(ui.Rect.fromCircle(center: leftCenter, radius: radius)),
+    );
+    canvas.drawCircle(
+      rightCenter,
+      radius,
+      ui.Paint()
+        ..shader = tintGradient
+            .createShader(ui.Rect.fromCircle(center: rightCenter, radius: radius)),
+    );
   }
 }

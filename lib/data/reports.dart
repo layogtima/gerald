@@ -2,8 +2,9 @@ import 'dart:ui' show Color;
 
 import 'zone_type.dart';
 
-/// All 10 activities and their 3 paranoia-level reports.
+/// All activities and their 3 paranoia-level reports.
 enum Activity {
+  // Act 1 (always available)
   wateringPlants,
   carryingGroceries,
   doingYoga,
@@ -14,6 +15,16 @@ enum Activity {
   barbecuing,
   washingCar,
   talkingOnPhone,
+  // Act 2 (shifts 3-4)
+  measuringFence,
+  identicalTwins,
+  nightGardening,
+  photographingHouses,
+  // Act 3 (shift 5)
+  watchingYouBack,
+  writingReportAboutYou,
+  installingCamera,
+  neighborhoodMeeting,
 }
 
 class ReportOption {
@@ -35,6 +46,7 @@ class ActivityData {
   final Color color;
   final List<ZoneType> compatibleZones;
   final List<ReportOption> reports;
+  final int minAct; // 1 = always available, 2 = Act 2+, 3 = Act 3 only
 
   const ActivityData({
     required this.activity,
@@ -43,10 +55,14 @@ class ActivityData {
     required this.color,
     required this.compatibleZones,
     required this.reports,
+    this.minAct = 1,
   });
 }
 
 const List<ActivityData> allActivities = [
+  // ============================================================
+  // ACT 1 — Normal suburban activities (always available)
+  // ============================================================
   ActivityData(
     activity: Activity.wateringPlants,
     displayName: 'Watering Plants',
@@ -299,6 +315,231 @@ const List<ActivityData> allActivities = [
         level: 3,
         text:
             'Subject LAUGHING during call. Nobody laughs that much naturally. Receiving coded instructions.',
+        points: 50,
+      ),
+    ],
+  ),
+
+  // ============================================================
+  // ACT 2 — Something's Off (inverted logic: mild=paranoid, unhinged=reasonable)
+  // ============================================================
+  ActivityData(
+    activity: Activity.measuringFence,
+    displayName: 'Measuring Your Fence',
+    emoji: '📏',
+    color: Color(0xFF9E9E9E),
+    compatibleZones: [ZoneType.yard, ZoneType.street],
+    minAct: 2,
+    reports: [
+      ReportOption(
+        level: 1,
+        text:
+            'Someone measuring our fence. Clearly planning a perimeter breach.',
+        points: 10,
+      ),
+      ReportOption(
+        level: 2,
+        text:
+            'Suspect taking precise measurements of property boundaries. Surveying for... something.',
+        points: 25,
+      ),
+      ReportOption(
+        level: 3,
+        text:
+            'Actually, they might just be from the city planning office. This looks official.',
+        points: 50,
+      ),
+    ],
+  ),
+  ActivityData(
+    activity: Activity.identicalTwins,
+    displayName: 'Identical Twins',
+    emoji: '👯',
+    color: Color(0xFF7B1FA2),
+    compatibleZones: [ZoneType.street, ZoneType.yard],
+    minAct: 2,
+    reports: [
+      ReportOption(
+        level: 1,
+        text:
+            'Two identical people. The cloning program is operational.',
+        points: 10,
+      ),
+      ReportOption(
+        level: 2,
+        text:
+            'Subjects appear to be... the same person? Temporal anomaly?',
+        points: 25,
+      ),
+      ReportOption(
+        level: 3,
+        text:
+            'Oh wait. Those are just twins. The Hendersons mentioned this.',
+        points: 50,
+      ),
+    ],
+  ),
+  ActivityData(
+    activity: Activity.nightGardening,
+    displayName: '3 AM Gardening',
+    emoji: '🌙',
+    color: Color(0xFF1A237E),
+    compatibleZones: [ZoneType.yard],
+    minAct: 2,
+    reports: [
+      ReportOption(
+        level: 1,
+        text: 'Digging at night. Burying evidence, obviously.',
+        points: 10,
+      ),
+      ReportOption(
+        level: 2,
+        text:
+            'Nocturnal soil disturbance detected. What\'s going in that hole?',
+        points: 25,
+      ),
+      ReportOption(
+        level: 3,
+        text:
+            'Some people garden at odd hours to avoid sun. Still... the timing.',
+        points: 50,
+      ),
+    ],
+  ),
+  ActivityData(
+    activity: Activity.photographingHouses,
+    displayName: 'Photographing Houses',
+    emoji: '📸',
+    color: Color(0xFFE65100),
+    compatibleZones: [ZoneType.street],
+    minAct: 2,
+    reports: [
+      ReportOption(
+        level: 1,
+        text:
+            'Subject documenting residential structures. Reconnaissance confirmed.',
+        points: 10,
+      ),
+      ReportOption(
+        level: 2,
+        text:
+            'Multiple photos taken of houses. Building a target dossier?',
+        points: 25,
+      ),
+      ReportOption(
+        level: 3,
+        text:
+            'Could be a real estate photographer. But why THIS street?',
+        points: 50,
+      ),
+    ],
+  ),
+
+  // ============================================================
+  // ACT 3 — The Watchers (neighbors watching Gerald back)
+  // ============================================================
+  ActivityData(
+    activity: Activity.watchingYouBack,
+    displayName: 'Watching You Back',
+    emoji: '🔭',
+    color: Color(0xFFD32F2F),
+    compatibleZones: [ZoneType.window, ZoneType.yard],
+    minAct: 3,
+    reports: [
+      ReportOption(
+        level: 1,
+        text: 'Subject appears to be... observing this location.',
+        points: 10,
+      ),
+      ReportOption(
+        level: 2,
+        text: 'They have BINOCULARS. Pointed at MY window.',
+        points: 25,
+      ),
+      ReportOption(
+        level: 3,
+        text: 'Wait. Am I... the subject of their surveillance?',
+        points: 50,
+      ),
+    ],
+  ),
+  ActivityData(
+    activity: Activity.writingReportAboutYou,
+    displayName: 'Writing a Report About You',
+    emoji: '📋',
+    color: Color(0xFFC62828),
+    compatibleZones: [ZoneType.window, ZoneType.yard],
+    minAct: 3,
+    reports: [
+      ReportOption(
+        level: 1,
+        text: 'Subject is writing something while looking this way.',
+        points: 10,
+      ),
+      ReportOption(
+        level: 2,
+        text:
+            'That clipboard. That pen. They\'re filing a report. About ME.',
+        points: 25,
+      ),
+      ReportOption(
+        level: 3,
+        text:
+            'INCIDENT REPORT: \'Gerald won\'t stop watching us.\' Signed: Everyone.',
+        points: 50,
+      ),
+    ],
+  ),
+  ActivityData(
+    activity: Activity.installingCamera,
+    displayName: 'Installing a Camera',
+    emoji: '📹',
+    color: Color(0xFFB71C1C),
+    compatibleZones: [ZoneType.yard, ZoneType.street],
+    minAct: 3,
+    reports: [
+      ReportOption(
+        level: 1,
+        text: 'Security camera installation in progress. Pointed at... here.',
+        points: 10,
+      ),
+      ReportOption(
+        level: 2,
+        text:
+            'Surveillance equipment being mounted. This neighborhood has TWO watchers now.',
+        points: 25,
+      ),
+      ReportOption(
+        level: 3,
+        text:
+            'The camera has a label: \'GERALD-CAM.\' They named it after me.',
+        points: 50,
+      ),
+    ],
+  ),
+  ActivityData(
+    activity: Activity.neighborhoodMeeting,
+    displayName: 'Neighborhood Meeting',
+    emoji: '📢',
+    color: Color(0xFF880E4F),
+    compatibleZones: [ZoneType.yard, ZoneType.street],
+    minAct: 3,
+    reports: [
+      ReportOption(
+        level: 1,
+        text: 'Multiple residents gathered. Appears organized.',
+        points: 10,
+      ),
+      ReportOption(
+        level: 2,
+        text:
+            'Agenda item visible: \'The Gerald Situation.\' I\'m an AGENDA ITEM.',
+        points: 25,
+      ),
+      ReportOption(
+        level: 3,
+        text:
+            'They\'ve formed a committee. The \'Gerald Accountability Task Force.\'',
         points: 50,
       ),
     ],

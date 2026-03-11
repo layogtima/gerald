@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../data/story.dart';
 import '../game.dart';
 
+/// Shift briefing styled as a dispatch memo document.
 class RoundIntroOverlay extends StatelessWidget {
   final NeighborhoodWatchGame game;
 
@@ -10,65 +12,111 @@ class RoundIntroOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final config = game.currentConfig;
+    final story = shiftStories[game.currentRound];
+    final shiftLabel =
+        game.currentRound == 0 ? 'PROLOGUE' : 'SHIFT ${game.currentRound}';
 
     return Center(
       child: Container(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(28),
+        constraints: const BoxConstraints(maxWidth: 400),
         decoration: BoxDecoration(
-          color: const Color(0xEE0a0a0a),
-          borderRadius: BorderRadius.circular(4),
-          border: Border.all(color: const Color(0xFFFFAA00), width: 1),
+          color: const Color(0xFFF5E6C8),
+          borderRadius: BorderRadius.circular(2),
+          border: Border.all(color: const Color(0xFF8B7355), width: 1.5),
           boxShadow: const [
-            BoxShadow(color: Color(0x22FFAA00), blurRadius: 16),
+            BoxShadow(color: Color(0x66000000), blurRadius: 16, offset: Offset(0, 4)),
           ],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'SHIFT ${game.currentRound + 1}',
-              style: const TextStyle(
-                color: Color(0xFFFFAA00),
-                fontSize: 36,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'monospace',
-                letterSpacing: 6,
+            const Center(
+              child: Text(
+                'DISPATCH MEMO',
+                style: TextStyle(
+                  color: Color(0xFF2A1A0A),
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'monospace',
+                  letterSpacing: 3,
+                ),
               ),
             ),
-            const SizedBox(height: 16),
-            Text(
-              'Quota: ${config.quota} reports',
-              style: const TextStyle(
-                color: Color(0xCCFFAA00),
-                fontSize: 18,
-                fontFamily: 'monospace',
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Time: ${config.roundDurationSeconds.toInt()}s',
-              style: const TextStyle(
-                color: Color(0x88FFAA00),
-                fontSize: 14,
-                fontFamily: 'monospace',
-              ),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () => game.beginPlaying(),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFFAA00),
-                foregroundColor: const Color(0xFF0a0a0a),
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
-                textStyle: const TextStyle(
-                  fontSize: 16,
+            const Divider(color: Color(0xFFC4A882), thickness: 1),
+            const SizedBox(height: 4),
+            Center(
+              child: Text(
+                story.actTitle,
+                style: const TextStyle(
+                  color: Color(0xFF8B7355),
+                  fontSize: 11,
                   fontWeight: FontWeight.bold,
                   fontFamily: 'monospace',
                   letterSpacing: 2,
                 ),
               ),
-              child: const Text('START WATCHING'),
+            ),
+            const SizedBox(height: 4),
+            Center(
+              child: Text(
+                shiftLabel,
+                style: const TextStyle(
+                  color: Color(0xFF2A1A0A),
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'monospace',
+                  letterSpacing: 4,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'QUOTA: ${config.quota} reports required',
+              style: const TextStyle(
+                color: Color(0xFF5A4A3A),
+                fontSize: 14,
+                fontFamily: 'monospace',
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'DURATION: ${config.roundDurationSeconds.toInt()} seconds',
+              style: const TextStyle(
+                color: Color(0xFF5A4A3A),
+                fontSize: 14,
+                fontFamily: 'monospace',
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              story.briefing,
+              style: const TextStyle(
+                color: Color(0xFF8B7355),
+                fontSize: 12,
+                fontStyle: FontStyle.italic,
+                fontFamily: 'monospace',
+              ),
+            ),
+            const SizedBox(height: 20),
+            Center(
+              child: ElevatedButton(
+                onPressed: () => game.beginPlaying(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2A1A0A),
+                  foregroundColor: const Color(0xFFF5E6C8),
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
+                  textStyle: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'monospace',
+                    letterSpacing: 2,
+                  ),
+                ),
+                child: const Text('START WATCHING'),
+              ),
             ),
           ],
         ),

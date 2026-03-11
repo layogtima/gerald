@@ -18,6 +18,7 @@ import 'components/observation_zone.dart';
 import 'components/score_popup.dart';
 import 'data/reports.dart';
 import 'data/round_config.dart';
+import 'data/story.dart';
 import 'data/zone_type.dart';
 
 enum GameState {
@@ -65,6 +66,7 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
   late CrtOverlay crtOverlay;
 
   RoundConfig get currentConfig => roundConfigs[currentRound];
+  ShiftStory get currentStory => shiftStories[currentRound];
 
   @override
   Future<void> onLoad() async {
@@ -223,8 +225,10 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
 
     // Pick random zone, then pick a compatible activity
     final zone = emptyZones[_random.nextInt(emptyZones.length)];
+    final act = actForShift(currentRound);
     final compatible = allActivities
         .where((a) => a.compatibleZones.contains(zone.zoneType))
+        .where((a) => a.minAct <= act)
         .toList();
     if (compatible.isEmpty) return;
 
@@ -355,7 +359,7 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
     overlays.remove('round_result');
 
     if (reportsFiledThisRound >= currentConfig.quota) {
-      if (currentRound >= 4) {
+      if (currentRound >= 5) {
         gameState = GameState.gameOver;
         overlays.add('game_over_win');
       } else {

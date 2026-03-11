@@ -4,24 +4,12 @@ import 'dart:ui' as ui;
 import 'package:flame/components.dart';
 import 'package:flutter/painting.dart';
 
+import '../data/story.dart';
 import '../game.dart';
 
 /// Atmospheric Gerald mutter text at the bottom of screen.
 class GeraldMutterComponent extends PositionComponent
     with HasGameReference<NeighborhoodWatchGame> {
-  static const _mutters = [
-    'Hmm...',
-    'Suspicious...',
-    'I knew it.',
-    'Classic.',
-    'Very interesting...',
-    'Nobody fools Gerald.',
-    "That's going in the report.",
-    'Noted.',
-    'Highly irregular.',
-    'Trust no one.',
-  ];
-
   final Random _random = Random();
   double _timer = 0;
   double _nextMutterDelay = 3.0;
@@ -49,7 +37,8 @@ class GeraldMutterComponent extends PositionComponent
     if (_timer >= _nextMutterDelay && _mutterOpacity <= 0) {
       _timer = 0;
       _nextMutterDelay = 4.0 + _random.nextDouble() * 4.0;
-      _currentMutter = _mutters[_random.nextInt(_mutters.length)];
+      final mutters = game.currentStory.mutters;
+      _currentMutter = mutters[_random.nextInt(mutters.length)];
       _mutterOpacity = 1.0;
       _mutterLife = 0;
     }
