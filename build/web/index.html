@@ -1,46 +1,206 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="/">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <title>Gerald is Watching | Neighborhood Watch</title>
+  <meta name="description" content="Gerald lives in a neighborhood with 0% crime, but that doesn't stop him from reporting suspicious activity. A paranoid suburban surveillance game.">
+  <meta name="theme-color" content="#0a0a0a">
+
+  <!-- OpenGraph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Gerald is Watching">
+  <meta property="og:description" content="The neighborhood isn't going to watch itself. A paranoid suburban surveillance game built for Flame Game Jam.">
+  <meta property="og:image" content="icons/Icon-512.png">
+  <meta property="og:url" content="https://gerald-208.pages.dev/">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Gerald is Watching">
+  <meta name="twitter:description" content="The neighborhood isn't going to watch itself. Drag your binoculars, spy on neighbors, file paranoid reports.">
+  <meta name="twitter:image" content="icons/Icon-512.png">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="neighborhood_watch">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Gerald is Watching">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link rel="icon" type="image/png" href="favicon.png">
 
-  <title>neighborhood_watch</title>
   <link rel="manifest" href="manifest.json">
-</head>
-<body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
 
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
-  <script src="flutter_bootstrap.js" async></script>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: VT323 (VCR/CRT style) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #0a0a0a; }
+
+    .vt323 { font-family: 'VT323', monospace; }
+
+    /* CRT scanline effect for landing page */
+    .crt-scanlines {
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 255, 65, 0.03) 2px,
+        rgba(0, 255, 65, 0.03) 4px
+      );
+      pointer-events: none;
+    }
+
+    /* CRT flicker */
+    @keyframes flicker {
+      0%, 100% { opacity: 1; }
+      92% { opacity: 1; }
+      93% { opacity: 0.8; }
+      94% { opacity: 1; }
+    }
+
+    /* Glow pulse for the play button */
+    @keyframes glow-pulse {
+      0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 65, 0.4), inset 0 0 20px rgba(0, 255, 65, 0.1); }
+      50% { box-shadow: 0 0 40px rgba(0, 255, 65, 0.7), inset 0 0 30px rgba(0, 255, 65, 0.2); }
+    }
+
+    /* REC blink */
+    @keyframes rec-blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    .glow-btn {
+      animation: glow-pulse 2s ease-in-out infinite;
+    }
+
+    .rec-dot {
+      animation: rec-blink 1s step-end infinite;
+    }
+
+    #game-container {
+      width: 100vw;
+      height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body class="bg-black text-green-400 vt323">
+
+  <!-- ===== LANDING PAGE ===== -->
+  <div id="landing" class="relative min-h-screen flex flex-col items-center justify-center px-4" style="animation: flicker 4s infinite;">
+
+    <!-- Scanline overlay -->
+    <div class="crt-scanlines fixed inset-0 z-10"></div>
+
+    <!-- Content -->
+    <div class="relative z-20 max-w-lg w-full text-center space-y-6">
+
+      <!-- REC indicator -->
+      <div class="flex items-center justify-start gap-2 text-red-500 text-sm absolute top-4 left-4 sm:top-8 sm:left-8">
+        <span class="rec-dot inline-block w-3 h-3 bg-red-600 rounded-full"></span>
+        <span class="tracking-widest">REC</span>
+      </div>
+
+      <!-- Title -->
+      <div class="space-y-2">
+        <h1 class="text-5xl sm:text-7xl text-green-400 tracking-wider leading-none">
+          GERALD IS<br>WATCHING
+        </h1>
+        <p class="text-green-600 text-lg sm:text-xl italic">
+          The neighborhood isn't going to watch itself.
+        </p>
+      </div>
+
+      <!-- Concept -->
+      <p class="text-green-700 text-base sm:text-lg max-w-md mx-auto leading-relaxed">
+        Gerald lives in a neighborhood with 0% crime. That doesn't stop him from reporting every last suspicious activity through his binoculars.
+      </p>
+
+      <!-- Controls -->
+      <div class="border border-green-900 rounded-lg p-4 bg-black/50 text-left space-y-2 text-sm sm:text-base">
+        <div class="text-green-500 text-lg mb-2 text-center tracking-widest">[ CONTROLS ]</div>
+        <div class="text-green-600">&#9654; <span class="text-green-400">Drag</span> to scan the neighborhood</div>
+        <div class="text-green-600">&#9654; <span class="text-green-400">Tap</span> suspicious neighbors</div>
+        <div class="text-green-600">&#9654; <span class="text-green-400">File</span> paranoid incident reports</div>
+        <div class="text-green-600">&#9654; <span class="text-green-400">Meet quota</span> before your shift ends</div>
+      </div>
+
+      <!-- Play Button -->
+      <button onclick="startGame()" class="glow-btn bg-green-500/20 border-2 border-green-400 text-green-300 text-3xl sm:text-4xl px-12 py-4 rounded-lg hover:bg-green-500/30 transition-colors tracking-widest">
+        &#9658; BEGIN SURVEILLANCE
+      </button>
+
+      <!-- Links -->
+      <div class="flex items-center justify-center gap-6 text-sm text-green-800">
+        <a href="https://github.com/layogtima/gerald" target="_blank" class="hover:text-green-400 transition-colors">
+          [ GitHub ]
+        </a>
+        <span>|</span>
+        <span>Flame Game Jam 2025</span>
+      </div>
+
+      <!-- Changelog -->
+      <div class="text-left text-xs text-green-900 border-t border-green-900/50 pt-4 mt-4 space-y-1">
+        <div class="text-green-700 tracking-widest mb-1">// CHANGELOG</div>
+        <div>v0.2 - CRT aesthetic, touch binoculars, wider world</div>
+        <div>v0.1 - Core gameplay loop, 5 shifts, 10 activities</div>
+      </div>
+
+      <!-- VCR timestamp -->
+      <div class="text-green-900 text-xs tracking-widest" id="vcr-clock"></div>
+    </div>
+  </div>
+
+  <!-- ===== GAME CONTAINER ===== -->
+  <div id="game-container" style="display: none;"></div>
+
+  <script>
+    // VCR clock on landing page
+    function updateClock() {
+      const now = new Date();
+      const d = now.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
+      const t = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const el = document.getElementById('vcr-clock');
+      if (el) el.textContent = d + '  ' + t;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Start game
+    function startGame() {
+      document.getElementById('landing').style.display = 'none';
+      const gc = document.getElementById('game-container');
+      gc.style.display = 'flex';
+    }
+  </script>
+
+  <script src="flutter.js" defer></script>
+  <script>
+    window.addEventListener('load', function() {
+      _flutter.loader.load({
+        onEntrypointLoaded: async function(engineInitializer) {
+          const appRunner = await engineInitializer.initializeEngine({
+            hostElement: document.getElementById('game-container'),
+          });
+          await appRunner.runApp();
+        }
+      });
+    });
+  </script>
 </body>
 </html>

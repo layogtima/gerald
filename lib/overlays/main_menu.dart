@@ -13,21 +13,29 @@ class MainMenuOverlay extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(40),
         decoration: BoxDecoration(
-          color: const Color(0xEE1A1A2E),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFFFD700), width: 2),
+          color: const Color(0xEE0a0a0a),
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: const Color(0xFF00ff41), width: 1),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x3300ff41),
+              blurRadius: 20,
+              spreadRadius: 2,
+            ),
+          ],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
-              'NEIGHBORHOOD\nWATCH',
+              'GERALD IS\nWATCHING',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Color(0xFFFFD700),
+                color: Color(0xFF00ff41),
                 fontSize: 42,
                 fontWeight: FontWeight.bold,
-                letterSpacing: 3,
+                fontFamily: 'monospace',
+                letterSpacing: 4,
                 height: 1.1,
               ),
             ),
@@ -36,19 +44,21 @@ class MainMenuOverlay extends StatelessWidget {
               'The neighborhood isn\'t going\nto watch itself.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Color(0xAAFFFFFF),
+                color: Color(0x8800ff41),
                 fontSize: 14,
                 fontStyle: FontStyle.italic,
+                fontFamily: 'monospace',
               ),
             ),
             const SizedBox(height: 32),
             _buildButton('BEGIN SHIFT', () => game.startGame()),
             const SizedBox(height: 16),
             const Text(
-              'Tap suspicious neighbors → File reports → Meet quota',
+              'Drag to scan  /  Tap to report  /  Meet quota',
               style: TextStyle(
-                color: Color(0x88FFFFFF),
+                color: Color(0x6600ff41),
                 fontSize: 11,
+                fontFamily: 'monospace',
               ),
             ),
           ],
@@ -61,13 +71,17 @@ class MainMenuOverlay extends StatelessWidget {
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFFFFD700),
-        foregroundColor: const Color(0xFF1A1A2E),
+        backgroundColor: const Color(0xFF00ff41),
+        foregroundColor: const Color(0xFF0a0a0a),
         padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(2),
+        ),
         textStyle: const TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.bold,
-          letterSpacing: 2,
+          fontFamily: 'monospace',
+          letterSpacing: 3,
         ),
       ),
       child: Text(text),

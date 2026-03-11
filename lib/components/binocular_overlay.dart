@@ -6,10 +6,12 @@ import 'package:flutter/painting.dart';
 import '../game.dart';
 
 /// Draws a binocular vignette effect — two overlapping circles with dark outside.
+/// Rendered in viewport space so it stays fixed on screen while camera pans.
 class BinocularOverlay extends PositionComponent
     with HasGameReference<NeighborhoodWatchGame> {
   @override
   Future<void> onLoad() async {
+    // Use viewport dimensions (what the camera shows), not world dimensions
     size = Vector2(NeighborhoodWatchGame.gameWidth, NeighborhoodWatchGame.gameHeight);
     priority = 100; // Always on top
   }
@@ -21,7 +23,7 @@ class BinocularOverlay extends PositionComponent
     final radius = h * 0.48;
     final separation = w * 0.15;
 
-    // Create a path that covers the whole screen
+    // Create a path that covers the whole viewport
     final outerPath = ui.Path()..addRect(ui.Rect.fromLTWH(0, 0, w, h));
 
     // Cut out two circles (binocular shape)
@@ -38,30 +40,53 @@ class BinocularOverlay extends PositionComponent
 
     canvas.drawPath(
       combinedPath,
-      ui.Paint()..color = const ui.Color(0xDD000000),
+      ui.Paint()..color = const ui.Color(0xEE000000),
     );
 
-    // Thin circle borders for definition
+    // Circle borders for definition
     final borderPaint = ui.Paint()
-      ..color = const ui.Color(0xFF333333)
+      ..color = const ui.Color(0xFF222222)
       ..style = ui.PaintingStyle.stroke
-      ..strokeWidth = 3;
+      ..strokeWidth = 4;
     canvas.drawCircle(leftCenter, radius, borderPaint);
     canvas.drawCircle(rightCenter, radius, borderPaint);
 
-    // Subtle gradient on the edges of circles for depth
+    // Inner ring detail
+    final innerRing = ui.Paint()
+      ..color = const ui.Color(0xFF1a1a1a)
+      ..style = ui.PaintingStyle.stroke
+      ..strokeWidth = 2;
+    canvas.drawCircle(leftCenter, radius - 5, innerRing);
+    canvas.drawCircle(rightCenter, radius - 5, innerRing);
+
+    // Radial gradient on edges for depth / vignette
     final gradientPaint = ui.Paint()
       ..shader = RadialGradient(
-        colors: const [ui.Color(0x00000000), ui.Color(0x44000000)],
-        stops: const [0.7, 1.0],
+        colors: const [ui.Color(0x00000000), ui.Color(0x55000000)],
+        stops: const [0.65, 1.0],
       ).createShader(ui.Rect.fromCircle(center: leftCenter, radius: radius));
     canvas.drawCircle(leftCenter, radius, gradientPaint);
 
     final gradientPaint2 = ui.Paint()
       ..shader = RadialGradient(
-        colors: const [ui.Color(0x00000000), ui.Color(0x44000000)],
-        stops: const [0.7, 1.0],
+        colors: const [ui.Color(0x00000000), ui.Color(0x55000000)],
+        stops: const [0.65, 1.0],
       ).createShader(ui.Rect.fromCircle(center: rightCenter, radius: radius));
     canvas.drawCircle(rightCenter, radius, gradientPaint2);
+
+    // Subtle green tint on lens edges (CRT feel)
+    final greenTint = ui.Paint()
+      ..shader = RadialGradient(
+        colors: const [ui.Color(0x00000000), ui.Color(0x0800ff41)],
+        stops: const [0.7, 1.0],
+      ).createShader(ui.Rect.fromCircle(center: leftCenter, radius: radius));
+    canvas.drawCircle(leftCenter, radius, greenTint);
+
+    final greenTint2 = ui.Paint()
+      ..shader = RadialGradient(
+        colors: const [ui.Color(0x00000000), ui.Color(0x0800ff41)],
+        stops: const [0.7, 1.0],
+      ).createShader(ui.Rect.fromCircle(center: rightCenter, radius: radius));
+    canvas.drawCircle(rightCenter, radius, greenTint2);
   }
 }

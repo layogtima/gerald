@@ -26,14 +26,13 @@ class ReportUiOverlay extends StatelessWidget {
             margin: const EdgeInsets.only(bottom: 12, left: 12, right: 12),
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: const Color(0xF0F5F0DC),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFF8B7355), width: 2),
+              color: const Color(0xF00a0a0a),
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: const Color(0xFF00ff41), width: 1),
               boxShadow: const [
                 BoxShadow(
-                  color: Color(0x44000000),
+                  color: Color(0x3300ff41),
                   blurRadius: 12,
-                  offset: Offset(0, 4),
                 ),
               ],
             ),
@@ -46,15 +45,16 @@ class ReportUiOverlay extends StatelessWidget {
                   Row(
                     children: [
                       const Icon(Icons.assignment,
-                          color: Color(0xFF4A3728), size: 20),
+                          color: Color(0xFF00ff41), size: 20),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'INCIDENT REPORT: ${activity.displayName.toUpperCase()}',
+                          'INCIDENT: ${activity.displayName.toUpperCase()}',
                           style: const TextStyle(
-                            color: Color(0xFF4A3728),
+                            color: Color(0xFF00ff41),
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
+                            fontFamily: 'monospace',
                             letterSpacing: 1,
                           ),
                         ),
@@ -65,12 +65,12 @@ class ReportUiOverlay extends StatelessWidget {
                         child: const Padding(
                           padding: EdgeInsets.all(8),
                           child: Icon(Icons.close,
-                              color: Color(0xFF8B7355), size: 22),
+                              color: Color(0x8800ff41), size: 22),
                         ),
                       ),
                     ],
                   ),
-                  const Divider(color: Color(0xFF8B7355)),
+                  const Divider(color: Color(0x4400ff41)),
                   // Three report options
                   for (final report in activity.reports) ...[
                     _ReportButton(
@@ -104,21 +104,12 @@ class _ReportButton extends StatelessWidget {
     required this.onTap,
   });
 
-  Color get _bgColor {
+  Color get _accentColor {
     return switch (level) {
-      1 => const Color(0xFFE8F5E9),
-      2 => const Color(0xFFFFF3E0),
-      3 => const Color(0xFFFFEBEE),
-      _ => const Color(0xFFEEEEEE),
-    };
-  }
-
-  Color get _borderColor {
-    return switch (level) {
-      1 => const Color(0xFF4CAF50),
-      2 => const Color(0xFFFF9800),
-      3 => const Color(0xFFF44336),
-      _ => const Color(0xFF9E9E9E),
+      1 => const Color(0xFF00ff41),  // green — mild
+      2 => const Color(0xFFffaa00),  // amber — suspicious
+      3 => const Color(0xFFff4444),  // red — unhinged
+      _ => const Color(0xFF888888),
     };
   }
 
@@ -139,9 +130,9 @@ class _ReportButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: _bgColor,
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: _borderColor, width: 1.5),
+          color: _accentColor.withAlpha(0x11),
+          borderRadius: BorderRadius.circular(2),
+          border: Border.all(color: _accentColor.withAlpha(0x66), width: 1),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -149,15 +140,16 @@ class _ReportButton extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: _borderColor,
-                borderRadius: BorderRadius.circular(3),
+                color: _accentColor,
+                borderRadius: BorderRadius.circular(2),
               ),
               child: Text(
                 _levelLabel,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: Color(0xFF0a0a0a),
                   fontSize: 9,
                   fontWeight: FontWeight.bold,
+                  fontFamily: 'monospace',
                 ),
               ),
             ),
@@ -165,10 +157,11 @@ class _ReportButton extends StatelessWidget {
             Expanded(
               child: Text(
                 text,
-                style: const TextStyle(
-                  color: Color(0xFF333333),
+                style: TextStyle(
+                  color: _accentColor.withAlpha(0xCC),
                   fontSize: 12,
                   height: 1.3,
+                  fontFamily: 'monospace',
                 ),
               ),
             ),
@@ -176,9 +169,10 @@ class _ReportButton extends StatelessWidget {
             Text(
               '+$points',
               style: TextStyle(
-                color: _borderColor,
+                color: _accentColor,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
+                fontFamily: 'monospace',
               ),
             ),
           ],

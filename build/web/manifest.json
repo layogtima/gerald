@@ -1,12 +1,12 @@
 {
-    "name": "neighborhood_watch",
-    "short_name": "neighborhood_watch",
+    "name": "Gerald is Watching",
+    "short_name": "Gerald",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "background_color": "#0a0a0a",
+    "theme_color": "#0a0a0a",
+    "description": "A paranoid suburban surveillance game. Drag your binoculars, spy on neighbors, file incident reports.",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {
