@@ -42,17 +42,24 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
 
   // Game state
   GameState gameState = GameState.menu;
-  int currentRound = 0; // 0-indexed, display as +1
-  int tension = 0; // Hidden tension meter (0-100+), drives story
+  int currentRound = 0; // endless — no cap
+  int tension = 0; // Hidden tension (0-∞), drives tier escalation
   int reportsFiledThisRound = 0;
   double roundTimeRemaining = 90.0;
   bool isZoomedIn = false;
 
-  // Track reports filed this shift for newspaper
+  // Track reports filed this shift for Gerald's letter
   List<({ActivityData activity, ReportOption report})> shiftReports = [];
+
+  // ALL reports filed this game (for letter history / narrative arc)
+  List<({int shift, ActivityData activity, ReportOption report})> allReports =
+      [];
 
   // Dead-end ending text (set when a dead-end choice is picked)
   String? lastDeadEnd;
+
+  // Activity pool depletion — once interacted, never appears again
+  Set<Activity> usedActivities = {};
 
   // NPC spawn tracking
   int _npcsSpawnedThisRound = 0;
@@ -72,8 +79,7 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
   late BinocularOverlay binocularOverlay;
   late CrtOverlay crtOverlay;
 
-  RoundConfig get currentConfig => roundConfigs[currentRound];
-  ShiftStory get currentStory => shiftStories[currentRound];
+  RoundConfig get currentConfig => configForShift(currentRound);
 
   @override
   Future<void> onLoad() async {
@@ -94,49 +100,45 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
     // Background
     world.add(BackgroundComponent());
 
-    // Observation zones aligned to background geometry:
-    // Houses bottom at y≈350, sidewalk at y≈416-448
+    // Observation zones aligned to background geometry
     final windowSize = Vector2(80, 70);
     final yardSize = Vector2(120, 55);
     final streetSize = Vector2(140, 35);
 
     zones = [
-      // Window zones (inside house walls, at upper window height)
-      ObservationZone(position: Vector2(60, 140), label: '1st Ave Window', zoneType: ZoneType.window, zoneSize: windowSize),
-      ObservationZone(position: Vector2(320, 120), label: '2nd Ave Window', zoneType: ZoneType.window, zoneSize: windowSize),
-      ObservationZone(position: Vector2(620, 150), label: '3rd Ave Window', zoneType: ZoneType.window, zoneSize: windowSize),
-      ObservationZone(position: Vector2(900, 130), label: '4th Ave Window', zoneType: ZoneType.window, zoneSize: windowSize),
-      ObservationZone(position: Vector2(1200, 145), label: '5th Ave Window', zoneType: ZoneType.window, zoneSize: windowSize),
-      ObservationZone(position: Vector2(1500, 125), label: '6th Ave Window', zoneType: ZoneType.window, zoneSize: windowSize),
+      ObservationZone(position: Vector2(60, 140), label: 'Window 1', zoneType: ZoneType.window, zoneSize: windowSize),
+      ObservationZone(position: Vector2(320, 120), label: 'Window 2', zoneType: ZoneType.window, zoneSize: windowSize),
+      ObservationZone(position: Vector2(620, 150), label: 'Window 3', zoneType: ZoneType.window, zoneSize: windowSize),
+      ObservationZone(position: Vector2(900, 130), label: 'Window 4', zoneType: ZoneType.window, zoneSize: windowSize),
+      ObservationZone(position: Vector2(1200, 145), label: 'Window 5', zoneType: ZoneType.window, zoneSize: windowSize),
+      ObservationZone(position: Vector2(1500, 125), label: 'Window 6', zoneType: ZoneType.window, zoneSize: windowSize),
 
-      // Yard zones (front of each house, grass area)
-      ObservationZone(position: Vector2(75, 355), label: '1st Ave Yard', zoneType: ZoneType.yard, zoneSize: yardSize),
-      ObservationZone(position: Vector2(340, 355), label: '2nd Ave Yard', zoneType: ZoneType.yard, zoneSize: yardSize),
-      ObservationZone(position: Vector2(635, 355), label: '3rd Ave Yard', zoneType: ZoneType.yard, zoneSize: yardSize),
-      ObservationZone(position: Vector2(925, 355), label: '4th Ave Yard', zoneType: ZoneType.yard, zoneSize: yardSize),
-      ObservationZone(position: Vector2(1215, 355), label: '5th Ave Yard', zoneType: ZoneType.yard, zoneSize: yardSize),
-      ObservationZone(position: Vector2(1530, 355), label: '6th Ave Yard', zoneType: ZoneType.yard, zoneSize: yardSize),
+      ObservationZone(position: Vector2(75, 355), label: 'Yard 1', zoneType: ZoneType.yard, zoneSize: yardSize),
+      ObservationZone(position: Vector2(340, 355), label: 'Yard 2', zoneType: ZoneType.yard, zoneSize: yardSize),
+      ObservationZone(position: Vector2(635, 355), label: 'Yard 3', zoneType: ZoneType.yard, zoneSize: yardSize),
+      ObservationZone(position: Vector2(925, 355), label: 'Yard 4', zoneType: ZoneType.yard, zoneSize: yardSize),
+      ObservationZone(position: Vector2(1215, 355), label: 'Yard 5', zoneType: ZoneType.yard, zoneSize: yardSize),
+      ObservationZone(position: Vector2(1530, 355), label: 'Yard 6', zoneType: ZoneType.yard, zoneSize: yardSize),
 
-      // Street zones (on upper sidewalk)
-      ObservationZone(position: Vector2(250, 420), label: 'Sidewalk West', zoneType: ZoneType.street, zoneSize: streetSize),
-      ObservationZone(position: Vector2(850, 420), label: 'Sidewalk Central', zoneType: ZoneType.street, zoneSize: streetSize),
-      ObservationZone(position: Vector2(1450, 420), label: 'Sidewalk East', zoneType: ZoneType.street, zoneSize: streetSize),
+      ObservationZone(position: Vector2(250, 420), label: 'Sidewalk W', zoneType: ZoneType.street, zoneSize: streetSize),
+      ObservationZone(position: Vector2(850, 420), label: 'Sidewalk C', zoneType: ZoneType.street, zoneSize: streetSize),
+      ObservationZone(position: Vector2(1450, 420), label: 'Sidewalk E', zoneType: ZoneType.street, zoneSize: streetSize),
     ];
     world.addAll(zones);
 
-    // Gerald mutter (viewport space so it stays on screen)
+    // Gerald mutter (viewport space — disabled but kept for API compat)
     geraldMutter = GeraldMutterComponent();
     camera.viewport.add(geraldMutter);
 
-    // Binocular overlay (rendered in VIEWPORT space — stays fixed on screen)
+    // Binocular overlay
     binocularOverlay = BinocularOverlay();
     camera.viewport.add(binocularOverlay);
 
-    // CRT overlay (scanlines etc, in viewport space)
+    // CRT overlay
     crtOverlay = CrtOverlay();
     camera.viewport.add(crtOverlay);
 
-    // HUD (added to viewport)
+    // HUD
     hud = HudComponent();
     camera.viewport.add(hud);
 
@@ -153,7 +155,6 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
     final delta = info.delta.global;
     final vf = camera.viewfinder.position;
 
-    // Move camera opposite to drag direction
     final newX = (vf.x - delta.x * panSensitivity).clamp(
       gameWidth / 2,
       worldWidth - gameWidth / 2,
@@ -173,6 +174,8 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
     tension = 0;
     currentRound = 0;
     lastDeadEnd = null;
+    usedActivities = {};
+    allReports = [];
     startRound();
   }
 
@@ -182,7 +185,7 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
     shiftReports = [];
     roundTimeRemaining = currentConfig.roundDurationSeconds;
     _spawnTimer = 0;
-    _nextSpawnDelay = 1.5; // First NPC spawns quickly
+    _nextSpawnDelay = 1.5;
 
     // Clear any leftover NPCs
     for (final zone in zones) {
@@ -207,10 +210,8 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
 
     if (gameState != GameState.playing) return;
 
-    // Update round timer
     roundTimeRemaining -= dt;
 
-    // Check if shift should end: timer expired OR all NPCs spawned and none active
     final allSpawned = _npcsSpawnedThisRound >= currentConfig.totalNpcs;
     final noneActive = !zones.any((z) => z.hasNpc);
 
@@ -220,7 +221,6 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
       return;
     }
 
-    // Spawn NPCs (only if we haven't spawned them all yet)
     if (!allSpawned) {
       _spawnTimer += dt;
       if (_spawnTimer >= _nextSpawnDelay) {
@@ -234,22 +234,25 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
   void _trySpawnNpc() {
     if (_npcsSpawnedThisRound >= currentConfig.totalNpcs) return;
 
-    // Count current NPCs
     final activeNpcs = zones.where((z) => z.hasNpc).length;
     if (activeNpcs >= currentConfig.maxSimultaneousNpcs) return;
 
-    // Find empty zones
     final emptyZones = zones.where((z) => !z.hasNpc).toList();
     if (emptyZones.isEmpty) return;
 
-    // Pick random zone, then pick a compatible activity
     final zone = emptyZones[_random.nextInt(emptyZones.length)];
-    final act = actForShift(currentRound);
+    final tier = tierForShift(currentRound);
     final compatible = allActivities
         .where((a) => a.compatibleZones.contains(zone.zoneType))
-        .where((a) => a.minAct <= act)
+        .where((a) => a.tier <= tier)
+        .where((a) => !usedActivities.contains(a.activity))
         .toList();
-    if (compatible.isEmpty) return;
+
+    if (compatible.isEmpty) {
+      // Pool exhausted for this zone type — try to end gracefully
+      _npcsSpawnedThisRound = currentConfig.totalNpcs; // stop spawning
+      return;
+    }
 
     final activityData = compatible[_random.nextInt(compatible.length)];
     zone.spawnNpc(activityData, currentConfig.npcVisibilitySeconds);
@@ -264,23 +267,28 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
     npc.freezeTimer();
     gameState = GameState.reportOpen;
 
-    // Zoom effect: scale world toward NPC
     _zoomIn(npc);
-
     overlays.add('report_ui');
   }
 
   void onReportFiled(ReportOption report) {
     if (observedNpc == null) return;
 
-    // Add tension (hidden)
     tension += report.tension;
     reportsFiledThisRound++;
 
-    // Track for newspaper (only non-dismiss choices)
+    // Track for letter
     shiftReports.add((activity: observedNpc!.activityData, report: report));
+    allReports.add((
+      shift: currentRound,
+      activity: observedNpc!.activityData,
+      report: report,
+    ));
 
-    // Check for dead-end choice
+    // Mark activity as used — never spawns again
+    usedActivities.add(observedNpc!.activityData.activity);
+
+    // Check for dead-end
     if (report.deadEnd != null) {
       observedNpc!.parentZone.clearNpc();
       observedNpc = null;
@@ -293,20 +301,16 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
       return;
     }
 
-    // Remove NPC
     observedNpc!.parentZone.clearNpc();
     observedNpc = null;
-
-    // Close report UI and zoom out
     overlays.remove('report_ui');
     _zoomOut();
-
     isZoomedIn = false;
     gameState = GameState.playing;
   }
 
   void onReportDismissed() {
-    // Player can close without filing — no penalty
+    // Dismissed — NPC goes back to pool (NOT marked as used)
     if (observedNpc != null) {
       observedNpc!.unfreezeTimer();
       observedNpc = null;
@@ -314,13 +318,12 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
 
     overlays.remove('report_ui');
     _zoomOut();
-
     isZoomedIn = false;
     gameState = GameState.playing;
   }
 
   void onNpcExpired(Npc npc) {
-    // NPCs expire silently — no popup, no screen shake
+    // NPCs expire silently
   }
 
   void _zoomIn(Npc npc) {
@@ -349,27 +352,37 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
   }
 
   void _endRound() {
-    // Clear NPCs
     for (final zone in zones) {
       zone.clearNpc();
+    }
+
+    // Check if activity pool is exhausted
+    final tier = tierForShift(currentRound + 1);
+    final remaining = allActivities
+        .where((a) => a.tier <= tier)
+        .where((a) => !usedActivities.contains(a.activity))
+        .length;
+    if (remaining == 0) {
+      lastDeadEnd =
+          'Gerald has filed a report on every person, every activity, every moment.\n\n'
+          'There is nothing left to watch.\n\n'
+          'The street is quiet. The binoculars sit on the windowsill.\n'
+          'Gerald stares at an empty street and wonders if it was ever full.';
+      gameState = GameState.gameOver;
+      overlays.add('game_over');
+      return;
     }
 
     gameState = GameState.roundEnd;
     overlays.add('round_result');
   }
 
-  /// Called from round result overlay after the player acknowledges
+  /// Called from Gerald's letter overlay after the player acknowledges
   void onRoundResultDismissed() {
     overlays.remove('round_result');
-
-    if (currentRound >= 5) {
-      // All 6 shifts complete — game over with tension-based ending
-      gameState = GameState.gameOver;
-      overlays.add('game_over');
-    } else {
-      currentRound++;
-      startRound();
-    }
+    // Endless — always advance to next shift
+    currentRound++;
+    startRound();
   }
 
   void returnToMenu() {

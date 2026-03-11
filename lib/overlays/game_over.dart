@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../game.dart';
 
-/// Game over overlay — tension-based endings or dead-end specific endings.
+/// Game over overlay — dead-end specific endings only (endless mode).
 class GameOverOverlay extends StatelessWidget {
   final NeighborhoodWatchGame game;
 
@@ -16,39 +16,21 @@ class GameOverOverlay extends StatelessWidget {
     final Color stampColor;
 
     if (game.lastDeadEnd != null) {
-      // Dead-end specific ending
       title = 'END OF WATCH';
       subtitle = game.lastDeadEnd!;
       stampText = 'CASE CLOSED';
       stampColor = const Color(0xFF8B1A1A);
     } else {
-      final tension = game.tension;
-
-      if (tension <= 30) {
-        title = 'SLEEPY SUBURB';
-        subtitle =
-            'Gerald hangs up his binoculars. The neighborhood was boring after all.\n\n'
-            'Nobody was suspicious. Nobody was interesting. Gerald retires.';
-        stampText = 'RETIRED';
-        stampColor = const Color(0xFF607D8B);
-      } else if (tension <= 70) {
-        title = 'NEIGHBORHOOD CAPTAIN';
-        subtitle =
-            'Gerald receives his quarterly "Neighborhood Captain" certificate.\n\n'
-            "The HOA is satisfied. The parking spot is secure. Maple Drive is 'safe.'";
-        stampText = 'COMMENDED';
-        stampColor = const Color(0xFF2E6B35);
-      } else {
-        title = 'THE WATCHER BECOMES\nTHE WATCHED';
-        subtitle =
-            "Gerald checks his mailbox. There's an incident report.\n\n"
-            "It's about him. Signed by every neighbor on the street.\n\n"
-            "'Subject observed engaging in prolonged surveillance of residential area. "
-            "Recommend immediate intervention.'";
-        stampText = 'CASE CLOSED';
-        stampColor = const Color(0xFF8B1A1A);
-      }
+      title = 'THE WATCHER RESTS';
+      subtitle =
+          'Gerald puts down the binoculars.\n\n'
+          'The street carries on without him.';
+      stampText = 'RETIRED';
+      stampColor = const Color(0xFF607D8B);
     }
+
+    final shiftsCompleted = game.currentRound;
+    final reportsTotal = game.allReports.length;
 
     return Center(
       child: Container(
@@ -100,6 +82,15 @@ class GameOverOverlay extends StatelessWidget {
                 fontSize: 12,
                 fontFamily: 'monospace',
                 height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Shifts completed: $shiftsCompleted  |  Reports filed: $reportsTotal',
+              style: const TextStyle(
+                color: Color(0xFF8A7A6A),
+                fontSize: 10,
+                fontFamily: 'monospace',
               ),
             ),
             const SizedBox(height: 16),

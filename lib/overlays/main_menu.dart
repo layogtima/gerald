@@ -41,7 +41,7 @@ class MainMenuOverlay extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             const Text(
-              'The neighborhood isn\'t going\nto watch itself.',
+              'The street isn\'t going\nto watch itself.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Color(0x88FFAA00),
@@ -54,7 +54,7 @@ class MainMenuOverlay extends StatelessWidget {
             _buildButton('BEGIN SHIFT', () => game.startGame()),
             const SizedBox(height: 16),
             const Text(
-              'Drag to scan  /  Tap to report  /  Meet quota',
+              'Drag to scan  /  Tap to observe  /  File reports',
               style: TextStyle(
                 color: Color(0x66FFAA00),
                 fontSize: 11,

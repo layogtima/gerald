@@ -1,109 +1,35 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 
 import '../data/reports.dart';
 import '../game.dart';
 
-/// Between-shift newspaper: broadsheet style.
-/// Shows consequences of Gerald's reports as neighborhood news articles.
+/// Between-shift overlay: Gerald's letter to the Council.
+/// Typewriter aesthetic. References the player's actual choices.
+/// Tone escalates with shift count and tension.
 class RoundResultOverlay extends StatelessWidget {
   final NeighborhoodWatchGame game;
 
   const RoundResultOverlay({super.key, required this.game});
 
-  /// Shift-specific narrative filler stories that build the arc.
-  static const _shiftFillers = <int, List<String>>{
-    0: [
-      'Maple Drive Celebrates 500 Days Without Incident',
-      'Annual Block Party Draws Record Attendance',
-      'Community Garden Yields Best Tomatoes in Years',
-      'Library Reading Program Enrolls 40 Children This Summer',
-      'Street Resurfacing Project Completed Ahead of Schedule',
-    ],
-    1: [
-      'Residents Report Unfamiliar Faces at Weekend Farmers Market',
-      'Power Outage Affects Three Homes; Cause Unknown',
-      'Stray Cat Population Growing, Says Animal Control',
-      'Late-Night Delivery Truck Spotted on Residential Streets',
-      'Maple Drive Wi-Fi Networks Experience Intermittent Disruption',
-    ],
-    2: [
-      'HOA Meeting Attendance Triples Amid Growing Concerns',
-      'Real Estate Agent Spotted Photographing Properties',
-      'Three Families Install Security Systems in One Week',
-      'Anonymous Letter Found in Multiple Mailboxes',
-      'Maple Drive Residents Form Unofficial Communication Network',
-    ],
-    3: [
-      'Neighborhood Watch Reports Up 300% This Quarter',
-      'Council Member Calls for Emergency Community Meeting',
-      'Streetlights Upgraded to Brighter Bulbs by Unanimous Vote',
-      'Local Man Purchases Sixth Pair of Binoculars This Year',
-      'Property Values on Maple Drive Shift Amid Surveillance Debate',
-    ],
-    4: [
-      'Petition to Dissolve Neighborhood Watch Gains Signatures',
-      '"Who Watches the Watchman?" Spray-Painted on Sidewalk',
-      'Three Residents File Formal Complaints About Being Observed',
-      'Local News Crew Spotted on Maple Drive; Story Unknown',
-      'Maple Drive Ranked "Most Reported Street" in Tri-County Area',
-    ],
-    5: [
-      'Every Resident on Maple Drive Now Owns Binoculars',
-      'Council Votes to Review All Reports Filed This Year',
-      'Former Neighbors Return to "See What All the Fuss Is About"',
-      'Maple Drive Listed as Case Study in Suburban Sociology Journal',
-      'Block Party Cancelled; Replaced by "Mutual Observation Event"',
-    ],
-  };
-
   @override
   Widget build(BuildContext context) {
-    final consequenceReports = game.shiftReports
-        .where((r) => r.report.consequence != null)
-        .toList();
-
-    final rng = Random();
     final shift = game.currentRound;
-    final fillers = List<String>.from(_shiftFillers[shift] ?? _shiftFillers[0]!)
-      ..shuffle(rng);
-    final fillerCount =
-        consequenceReports.isEmpty ? 3 : (consequenceReports.length <= 2 ? 2 : 1);
-    final selectedFillers = fillers.take(fillerCount).toList();
+    final tension = game.tension;
+    final reports = game.shiftReports;
 
-    // Build article body snippets for consequences
-    final articles = consequenceReports.map((entry) {
-      return _Article(
-        headline: entry.report.consequence!,
-        body: _generateBody(entry.activity, entry.report),
-        isConsequence: true,
-      );
-    }).toList();
-
-    // Add filler articles
-    for (final filler in selectedFillers) {
-      articles.add(_Article(
-        headline: filler,
-        body: null,
-        isConsequence: false,
-      ));
-    }
-
-    final weekNum = shift + 1;
-    final isLastShift = shift >= 5;
+    final letter = _buildLetter(shift, tension, reports);
 
     return Center(
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 480, maxHeight: 600),
+        constraints: const BoxConstraints(maxWidth: 460, maxHeight: 580),
         margin: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFFFFF8EE),
+          color: const Color(0xFFFFF9F0),
           borderRadius: BorderRadius.circular(2),
-          border: Border.all(color: const Color(0xFF2A1A0A), width: 2),
+          border: Border.all(color: const Color(0xFFD4C4A8), width: 1),
           boxShadow: const [
             BoxShadow(
-                color: Color(0x88000000),
+                color: Color(0x66000000),
                 blurRadius: 20,
                 offset: Offset(0, 6)),
           ],
@@ -111,120 +37,71 @@ class RoundResultOverlay extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Masthead
+            // Header stamp
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               decoration: const BoxDecoration(
                 border: Border(
-                  bottom: BorderSide(color: Color(0xFF2A1A0A), width: 3),
+                  bottom: BorderSide(color: Color(0xFFD4C4A8), width: 1),
                 ),
               ),
-              child: Column(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    'NEIGHBOURS WEEKLY',
+                    'CORRESPONDENCE',
                     style: TextStyle(
-                      color: Color(0xFF2A1A0A),
-                      fontSize: 28,
-                      fontWeight: FontWeight.w900,
+                      color: Color(0xFFAA9988),
+                      fontSize: 9,
                       fontFamily: 'monospace',
-                      letterSpacing: 2,
-                      height: 1,
+                      letterSpacing: 3,
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  Container(
-                    height: 1,
-                    color: const Color(0xFF2A1A0A),
-                    margin: const EdgeInsets.symmetric(horizontal: 20),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Vol. XLII No. $weekNum',
-                        style: const TextStyle(
-                          color: Color(0xFF6A5A4A),
-                          fontSize: 9,
-                          fontFamily: 'monospace',
-                        ),
-                      ),
-                      Text(
-                        'WEEK $weekNum',
-                        style: const TextStyle(
-                          color: Color(0xFF6A5A4A),
-                          fontSize: 9,
-                          fontFamily: 'monospace',
-                          letterSpacing: 2,
-                        ),
-                      ),
-                      const Text(
-                        'Price: Free',
-                        style: TextStyle(
-                          color: Color(0xFF6A5A4A),
-                          fontSize: 9,
-                          fontFamily: 'monospace',
-                        ),
-                      ),
-                    ],
+                  Text(
+                    'SHIFT ${shift + 1}',
+                    style: const TextStyle(
+                      color: Color(0xFFAA9988),
+                      fontSize: 9,
+                      fontFamily: 'monospace',
+                      letterSpacing: 2,
+                    ),
                   ),
                 ],
               ),
             ),
 
-            // Articles
+            // Letter body
             Flexible(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (consequenceReports.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.only(bottom: 10),
-                        child: Center(
-                          child: Text(
-                            'A quiet week. Nothing to report.',
-                            style: TextStyle(
-                              color: Color(0xFF8A7A6A),
-                              fontSize: 12,
-                              fontStyle: FontStyle.italic,
-                              fontFamily: 'monospace',
-                            ),
-                          ),
-                        ),
-                      ),
-                    for (int i = 0; i < articles.length; i++) ...[
-                      articles[i],
-                      if (i < articles.length - 1)
-                        Container(
-                          height: 1,
-                          color: const Color(0xFFD4C4A2),
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                        ),
-                    ],
-                  ],
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 12),
+                child: Text(
+                  letter,
+                  style: const TextStyle(
+                    color: Color(0xFF3A3020),
+                    fontSize: 12,
+                    fontFamily: 'monospace',
+                    height: 1.6,
+                  ),
                 ),
               ),
             ),
 
-            // Footer with button
+            // Continue button
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(14, 8, 14, 14),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
               decoration: const BoxDecoration(
                 border: Border(
-                  top: BorderSide(color: Color(0xFF2A1A0A), width: 1),
+                  top: BorderSide(color: Color(0xFFD4C4A8), width: 1),
                 ),
               ),
               child: Center(
                 child: ElevatedButton(
                   onPressed: () => game.onRoundResultDismissed(),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2A1A0A),
-                    foregroundColor: const Color(0xFFFFF8EE),
+                    backgroundColor: const Color(0xFF3A3020),
+                    foregroundColor: const Color(0xFFFFF9F0),
                     padding: const EdgeInsets.symmetric(
                         horizontal: 32, vertical: 12),
                     shape: RoundedRectangleBorder(
@@ -236,7 +113,7 @@ class RoundResultOverlay extends StatelessWidget {
                       letterSpacing: 1,
                     ),
                   ),
-                  child: Text(isLastShift ? 'FINAL EDITION' : 'NEXT WEEK'),
+                  child: const Text('NEXT SHIFT'),
                 ),
               ),
             ),
@@ -246,63 +123,114 @@ class RoundResultOverlay extends StatelessWidget {
     );
   }
 
-  /// Generate a short body paragraph for a consequence article.
-  String _generateBody(ActivityData activity, ReportOption report) {
-    final tension = report.tension;
-    if (tension <= 2) {
-      return 'Residents expressed mild concern following the incident. '
-          'The matter is expected to resolve quietly.';
-    } else if (tension <= 5) {
-      return 'Officials confirmed they received the report and are reviewing '
-          'the situation. Additional measures may follow pending investigation.';
+  String _buildLetter(
+    int shift,
+    int tension,
+    List<({ActivityData activity, ReportOption report})> reports,
+  ) {
+    final buf = StringBuffer();
+
+    // Salutation — degrades with tension
+    if (tension < 20) {
+      buf.writeln('Dear Council,');
+    } else if (tension < 50) {
+      buf.writeln('To the Council,');
+    } else if (tension < 80) {
+      buf.writeln('Council \u2014');
     } else {
-      return 'The report triggered an immediate response from local authorities. '
-          'Neighbors have been advised to remain vigilant as the investigation continues.';
+      buf.writeln('To whoever is reading this,');
+    }
+    buf.writeln();
+
+    // Opening line — varies by shift and tension
+    buf.writeln(_getOpening(shift, tension));
+    buf.writeln();
+
+    // Observations from this shift
+    final filedReports =
+        reports.where((r) => r.report.tension > 0).toList();
+    if (filedReports.isEmpty) {
+      buf.writeln(
+          'I observed nothing of concern during this shift. '
+          'The street was quiet. Perhaps too quiet.');
+    } else {
+      for (int i = 0; i < filedReports.length; i++) {
+        final r = filedReports[i];
+        buf.writeln(
+            'OBSERVATION ${i + 1}: Subject seen '
+            '${r.activity.displayName.toLowerCase()}. '
+            'Assessment: "${r.report.text}"');
+        if (r.report.consequence != null) {
+          buf.writeln('  \u2192 Recommended action: ${r.report.consequence}');
+        }
+        buf.writeln();
+      }
+    }
+
+    // Closing — escalates
+    buf.writeln(_getClosing(shift, tension));
+    buf.writeln();
+
+    // Signature — degrades
+    if (tension < 30) {
+      buf.write('Yours in vigilance,\nGerald');
+    } else if (tension < 60) {
+      buf.write('Respectfully,\nGerald');
+    } else if (tension < 90) {
+      buf.write('Gerald\n(please respond)');
+    } else {
+      buf.write('Gerald\n(is anyone reading these?)');
+    }
+
+    return buf.toString();
+  }
+
+  String _getOpening(int shift, int tension) {
+    if (shift == 0) {
+      return 'I am writing to confirm that surveillance operations '
+          'have commenced as scheduled. The street appears calm.';
+    } else if (shift <= 2 && tension < 30) {
+      return 'I am pleased to report another productive shift. '
+          'The following observations have been documented for your records.';
+    } else if (shift <= 4 && tension < 50) {
+      return 'I must bring several matters to your attention. '
+          'Activity on the street has become irregular.';
+    } else if (tension < 70) {
+      return 'I need to be frank with the Council. '
+          'Things on this street are not what they appear to be. '
+          'I have documented the following.';
+    } else if (tension < 100) {
+      return 'I don\'t know how else to say this. '
+          'Something is happening on this street. '
+          'I am documenting everything I can before it\'s too late.';
+    } else {
+      return 'They know I\'m writing this. '
+          'I can see them looking at my window right now. '
+          'Please read this carefully.';
     }
   }
-}
 
-class _Article extends StatelessWidget {
-  final String headline;
-  final String? body;
-  final bool isConsequence;
-
-  const _Article({
-    required this.headline,
-    required this.body,
-    required this.isConsequence,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          headline.toUpperCase(),
-          style: TextStyle(
-            color: isConsequence
-                ? const Color(0xFF2A1A0A)
-                : const Color(0xFF7A6A5A),
-            fontSize: isConsequence ? 14 : 11,
-            fontWeight: isConsequence ? FontWeight.w800 : FontWeight.w600,
-            fontFamily: 'monospace',
-            height: 1.2,
-          ),
-        ),
-        if (body != null) ...[
-          const SizedBox(height: 4),
-          Text(
-            body!,
-            style: const TextStyle(
-              color: Color(0xFF5A4A3A),
-              fontSize: 10,
-              fontFamily: 'monospace',
-              height: 1.4,
-            ),
-          ),
-        ],
-      ],
-    );
+  String _getClosing(int shift, int tension) {
+    if (shift == 0) {
+      return 'I look forward to a long and productive partnership '
+          'with the Council. The street is in good hands.';
+    } else if (tension < 25) {
+      return 'I trust the Council will take appropriate action. '
+          'I remain at my post.';
+    } else if (tension < 50) {
+      return 'I await your guidance on these matters. '
+          'The situation may require additional resources.';
+    } else if (tension < 75) {
+      return 'I urge the Council to review these findings immediately. '
+          'I am beginning to notice patterns that concern me deeply.';
+    } else if (tension < 100) {
+      return 'Has the Council received my previous letters? '
+          'I have not received a response. '
+          'Please confirm that someone is reading these.';
+    } else {
+      return 'I no longer know if the Council exists. '
+          'I am writing this for the record. '
+          'If you find this letter, know that Gerald tried.';
+    }
   }
 }
