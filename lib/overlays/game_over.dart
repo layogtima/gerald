@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../game.dart';
 
-/// Single game over overlay with 3 tension-based endings.
+/// Game over overlay — tension-based endings or dead-end specific endings.
 class GameOverOverlay extends StatelessWidget {
   final NeighborhoodWatchGame game;
 
@@ -10,39 +10,44 @@ class GameOverOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tension = game.tension;
-
     final String title;
     final String subtitle;
     final String stampText;
     final Color stampColor;
 
-    if (tension <= 30) {
-      // Low tension — boring ending
-      title = 'SLEEPY SUBURB';
-      subtitle =
-          'Gerald hangs up his binoculars. The neighborhood was boring after all.\n\n'
-          'Nobody was suspicious. Nobody was interesting. Gerald retires.';
-      stampText = 'RETIRED';
-      stampColor = const Color(0xFF607D8B);
-    } else if (tension <= 70) {
-      // Medium tension — normal ending
-      title = 'NEIGHBORHOOD CAPTAIN';
-      subtitle =
-          'Gerald receives his quarterly "Neighborhood Captain" certificate.\n\n'
-          "The HOA is satisfied. The parking spot is secure. Maple Drive is 'safe.'";
-      stampText = 'COMMENDED';
-      stampColor = const Color(0xFF2E6B35);
-    } else {
-      // High tension — paranoid twist
-      title = 'THE WATCHER BECOMES\nTHE WATCHED';
-      subtitle =
-          "Gerald checks his mailbox. There's an incident report.\n\n"
-          "It's about him. Signed by every neighbor on the street.\n\n"
-          "'Subject observed engaging in prolonged surveillance of residential area. "
-          "Recommend immediate intervention.'";
+    if (game.lastDeadEnd != null) {
+      // Dead-end specific ending
+      title = 'END OF WATCH';
+      subtitle = game.lastDeadEnd!;
       stampText = 'CASE CLOSED';
       stampColor = const Color(0xFF8B1A1A);
+    } else {
+      final tension = game.tension;
+
+      if (tension <= 30) {
+        title = 'SLEEPY SUBURB';
+        subtitle =
+            'Gerald hangs up his binoculars. The neighborhood was boring after all.\n\n'
+            'Nobody was suspicious. Nobody was interesting. Gerald retires.';
+        stampText = 'RETIRED';
+        stampColor = const Color(0xFF607D8B);
+      } else if (tension <= 70) {
+        title = 'NEIGHBORHOOD CAPTAIN';
+        subtitle =
+            'Gerald receives his quarterly "Neighborhood Captain" certificate.\n\n'
+            "The HOA is satisfied. The parking spot is secure. Maple Drive is 'safe.'";
+        stampText = 'COMMENDED';
+        stampColor = const Color(0xFF2E6B35);
+      } else {
+        title = 'THE WATCHER BECOMES\nTHE WATCHED';
+        subtitle =
+            "Gerald checks his mailbox. There's an incident report.\n\n"
+            "It's about him. Signed by every neighbor on the street.\n\n"
+            "'Subject observed engaging in prolonged surveillance of residential area. "
+            "Recommend immediate intervention.'";
+        stampText = 'CASE CLOSED';
+        stampColor = const Color(0xFF8B1A1A);
+      }
     }
 
     return Center(
@@ -98,7 +103,6 @@ class GameOverOverlay extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            // Stamp
             Transform.rotate(
               angle: -0.06,
               child: Container(

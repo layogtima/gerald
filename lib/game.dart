@@ -51,6 +51,9 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
   // Track reports filed this shift for newspaper
   List<({ActivityData activity, ReportOption report})> shiftReports = [];
 
+  // Dead-end ending text (set when a dead-end choice is picked)
+  String? lastDeadEnd;
+
   // NPC spawn tracking
   int _npcsSpawnedThisRound = 0;
 
@@ -169,6 +172,7 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
     overlays.remove('main_menu');
     tension = 0;
     currentRound = 0;
+    lastDeadEnd = null;
     startRound();
   }
 
@@ -276,8 +280,18 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
     // Track for newspaper (only non-dismiss choices)
     shiftReports.add((activity: observedNpc!.activityData, report: report));
 
-    // Trigger Gerald's reaction mutter
-    geraldMutter.triggerReaction(report.tension);
+    // Check for dead-end choice
+    if (report.deadEnd != null) {
+      observedNpc!.parentZone.clearNpc();
+      observedNpc = null;
+      overlays.remove('report_ui');
+      _zoomOut();
+      isZoomedIn = false;
+      lastDeadEnd = report.deadEnd;
+      gameState = GameState.gameOver;
+      overlays.add('game_over');
+      return;
+    }
 
     // Remove NPC
     observedNpc!.parentZone.clearNpc();

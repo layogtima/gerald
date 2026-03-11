@@ -41,11 +41,13 @@ class ReportOption {
   final String text; // Gerald's internal monologue
   final int tension; // Hidden: 0, 2, 5, or 12
   final String? consequence; // Newspaper headline (null = no story)
+  final String? deadEnd; // If non-null, triggers immediate game ending with this text
 
   const ReportOption({
     required this.text,
     required this.tension,
     this.consequence,
+    this.deadEnd,
   });
 }
 

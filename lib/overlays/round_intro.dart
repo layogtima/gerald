@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../data/story.dart';
 import '../game.dart';
 
-/// Shift briefing styled as a dispatch memo document.
+/// Minimal between-shift overlay — just a button to start watching.
 class RoundIntroOverlay extends StatelessWidget {
   final NeighborhoodWatchGame game;
 
@@ -11,95 +10,36 @@ class RoundIntroOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final story = shiftStories[game.currentRound];
-    final shiftLabel =
-        game.currentRound == 0 ? 'PROLOGUE' : 'SHIFT ${game.currentRound}';
-
-    return Center(
-      child: Container(
-        padding: const EdgeInsets.all(28),
-        constraints: const BoxConstraints(maxWidth: 400),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF5E6C8),
-          borderRadius: BorderRadius.circular(2),
-          border: Border.all(color: const Color(0xFF8B7355), width: 1.5),
-          boxShadow: const [
-            BoxShadow(color: Color(0x66000000), blurRadius: 16, offset: Offset(0, 4)),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Center(
-              child: Text(
-                'DISPATCH MEMO',
-                style: TextStyle(
-                  color: Color(0xFF2A1A0A),
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'monospace',
-                  letterSpacing: 3,
+    return Container(
+      color: const Color(0xCC000000),
+      child: Center(
+        child: GestureDetector(
+          onTap: () => game.beginPlaying(),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 20),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1A1A1A),
+              border: Border.all(color: const Color(0xFFFFAA00), width: 2),
+              borderRadius: BorderRadius.circular(4),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x66FFAA00),
+                  blurRadius: 30,
+                  spreadRadius: 2,
                 ),
-              ),
+              ],
             ),
-            const Divider(color: Color(0xFFC4A882), thickness: 1),
-            const SizedBox(height: 4),
-            Center(
-              child: Text(
-                story.actTitle,
-                style: const TextStyle(
-                  color: Color(0xFF8B7355),
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'monospace',
-                  letterSpacing: 2,
-                ),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Center(
-              child: Text(
-                shiftLabel,
-                style: const TextStyle(
-                  color: Color(0xFF2A1A0A),
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'monospace',
-                  letterSpacing: 4,
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              story.briefing,
-              style: const TextStyle(
-                color: Color(0xFF8B7355),
-                fontSize: 12,
-                fontStyle: FontStyle.italic,
+            child: const Text(
+              'START WATCHING',
+              style: TextStyle(
+                color: Color(0xFFFFCC44),
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
                 fontFamily: 'monospace',
+                letterSpacing: 4,
               ),
             ),
-            const SizedBox(height: 20),
-            Center(
-              child: ElevatedButton(
-                onPressed: () => game.beginPlaying(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2A1A0A),
-                  foregroundColor: const Color(0xFFF5E6C8),
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
-                  textStyle: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'monospace',
-                    letterSpacing: 2,
-                  ),
-                ),
-                child: const Text('START WATCHING'),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

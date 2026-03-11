@@ -113,8 +113,9 @@ const List<ShiftStory> shiftStories = [
 ];
 
 /// Which "act" a shift belongs to. Used for gating activities.
+/// Weirdness starts from the second shift (shift 1).
 int actForShift(int shift) {
-  if (shift <= 2) return 1;
-  if (shift <= 4) return 2;
-  return 3;
+  if (shift == 0) return 1; // Prologue: normal only
+  if (shift <= 3) return 2; // Shifts 1-3: weird stuff appears
+  return 3; // Shifts 4-5: the watchers
 }
