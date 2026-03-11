@@ -6,6 +6,7 @@ import 'overlays/game_over.dart';
 import 'overlays/main_menu.dart';
 import 'overlays/report_ui.dart';
 import 'overlays/round_intro.dart';
+import 'overlays/round_result.dart';
 
 void main() {
   runApp(const NeighborhoodWatchApp());
@@ -32,6 +33,8 @@ class NeighborhoodWatchApp extends StatelessWidget {
                 RoundIntroOverlay(game: game as NeighborhoodWatchGame),
             'report_ui': (context, game) =>
                 ReportUiOverlay(game: game as NeighborhoodWatchGame),
+            'round_result': (context, game) =>
+                RoundResultOverlay(game: game as NeighborhoodWatchGame),
             'game_over_win': (context, game) =>
                 GameOverWinOverlay(game: game as NeighborhoodWatchGame),
             'game_over_lose': (context, game) =>

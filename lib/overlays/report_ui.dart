@@ -14,60 +14,77 @@ class ReportUiOverlay extends StatelessWidget {
 
     final activity = npc.activityData;
 
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xF0F5F0DC),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFF8B7355), width: 2),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x44000000),
-              blurRadius: 12,
-              offset: Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Header
-            Row(
-              children: [
-                const Icon(Icons.assignment, color: Color(0xFF4A3728), size: 20),
-                const SizedBox(width: 8),
-                Text(
-                  'INCIDENT REPORT: ${activity.displayName.toUpperCase()}',
-                  style: const TextStyle(
-                    color: Color(0xFF4A3728),
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1,
-                  ),
-                ),
-                const Spacer(),
-                GestureDetector(
-                  onTap: () => game.onReportDismissed(),
-                  child: const Icon(Icons.close, color: Color(0xFF8B7355), size: 18),
+    return SafeArea(
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.6,
+            maxWidth: 600,
+          ),
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 12, left: 12, right: 12),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xF00a0a0a),
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: const Color(0xFFFFAA00), width: 1),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x33FFAA00),
+                  blurRadius: 12,
                 ),
               ],
             ),
-            const Divider(color: Color(0xFF8B7355)),
-            // Three report options
-            for (final report in activity.reports) ...[
-              _ReportButton(
-                level: report.level,
-                text: report.text,
-                points: report.points,
-                onTap: () => game.onReportFiled(report),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Header
+                  Row(
+                    children: [
+                      const Icon(Icons.assignment,
+                          color: Color(0xFFFFAA00), size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'INCIDENT: ${activity.displayName.toUpperCase()}',
+                          style: const TextStyle(
+                            color: Color(0xFFFFAA00),
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'monospace',
+                            letterSpacing: 1,
+                          ),
+                        ),
+                      ),
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => game.onReportDismissed(),
+                        child: const Padding(
+                          padding: EdgeInsets.all(8),
+                          child: Icon(Icons.close,
+                              color: Color(0x88FFAA00), size: 22),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Divider(color: Color(0x44FFAA00)),
+                  // Three report options
+                  for (final report in activity.reports) ...[
+                    _ReportButton(
+                      level: report.level,
+                      text: report.text,
+                      points: report.points,
+                      onTap: () => game.onReportFiled(report),
+                    ),
+                    if (report.level < 3) const SizedBox(height: 6),
+                  ],
+                ],
               ),
-              if (report.level < 3) const SizedBox(height: 6),
-            ],
-          ],
+            ),
+          ),
         ),
       ),
     );
@@ -87,21 +104,12 @@ class _ReportButton extends StatelessWidget {
     required this.onTap,
   });
 
-  Color get _bgColor {
+  Color get _accentColor {
     return switch (level) {
-      1 => const Color(0xFFE8F5E9),
-      2 => const Color(0xFFFFF3E0),
-      3 => const Color(0xFFFFEBEE),
-      _ => const Color(0xFFEEEEEE),
-    };
-  }
-
-  Color get _borderColor {
-    return switch (level) {
-      1 => const Color(0xFF4CAF50),
-      2 => const Color(0xFFFF9800),
-      3 => const Color(0xFFF44336),
-      _ => const Color(0xFF9E9E9E),
+      1 => const Color(0xFFFFAA00),  // green — mild
+      2 => const Color(0xFFffaa00),  // amber — suspicious
+      3 => const Color(0xFFff4444),  // red — unhinged
+      _ => const Color(0xFF888888),
     };
   }
 
@@ -117,13 +125,14 @@ class _ReportButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: _bgColor,
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: _borderColor, width: 1.5),
+          color: _accentColor.withAlpha(0x11),
+          borderRadius: BorderRadius.circular(2),
+          border: Border.all(color: _accentColor.withAlpha(0x66), width: 1),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -131,15 +140,16 @@ class _ReportButton extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: _borderColor,
-                borderRadius: BorderRadius.circular(3),
+                color: _accentColor,
+                borderRadius: BorderRadius.circular(2),
               ),
               child: Text(
                 _levelLabel,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: Color(0xFF0a0a0a),
                   fontSize: 9,
                   fontWeight: FontWeight.bold,
+                  fontFamily: 'monospace',
                 ),
               ),
             ),
@@ -147,10 +157,11 @@ class _ReportButton extends StatelessWidget {
             Expanded(
               child: Text(
                 text,
-                style: const TextStyle(
-                  color: Color(0xFF333333),
+                style: TextStyle(
+                  color: _accentColor.withAlpha(0xCC),
                   fontSize: 12,
                   height: 1.3,
+                  fontFamily: 'monospace',
                 ),
               ),
             ),
@@ -158,9 +169,10 @@ class _ReportButton extends StatelessWidget {
             Text(
               '+$points',
               style: TextStyle(
-                color: _borderColor,
+                color: _accentColor,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
+                fontFamily: 'monospace',
               ),
             ),
           ],

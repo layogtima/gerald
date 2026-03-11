@@ -1,14 +1,18 @@
 import 'dart:math';
+import 'dart:ui' as ui;
 
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
+import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/animation.dart';
 
 import 'components/background.dart';
 import 'components/binocular_overlay.dart';
+import 'components/crt_overlay.dart';
 import 'components/gerald_mutter.dart';
 import 'components/hud.dart';
+import 'components/missed_popup.dart';
 import 'components/npc.dart';
 import 'components/observation_zone.dart';
 import 'components/score_popup.dart';
@@ -24,9 +28,17 @@ enum GameState {
   gameOver,
 }
 
-class NeighborhoodWatchGame extends FlameGame {
+class NeighborhoodWatchGame extends FlameGame with PanDetector {
+  // Viewport width is fixed; height adapts to screen aspect ratio
   static const double gameWidth = 960;
-  static const double gameHeight = 540;
+  late double gameHeight;
+
+  // World (full scene, larger than viewport)
+  static const double worldWidth = 1920;
+  static const double worldHeight = 800;
+
+  // Camera panning
+  static const double panSensitivity = 1.3;
 
   // Game state
   GameState gameState = GameState.menu;
@@ -49,38 +61,59 @@ class NeighborhoodWatchGame extends FlameGame {
   late HudComponent hud;
   late GeraldMutterComponent geraldMutter;
   late BinocularOverlay binocularOverlay;
+  late CrtOverlay crtOverlay;
 
   RoundConfig get currentConfig => roundConfigs[currentRound];
 
   @override
   Future<void> onLoad() async {
-    // Set up camera with fixed resolution
+    // Compute viewport height from screen aspect ratio, capped at world height
+    final view = ui.PlatformDispatcher.instance.views.first;
+    final screenSize = view.physicalSize / view.devicePixelRatio;
+    final aspectRatio = screenSize.width / screenSize.height;
+    gameHeight = (gameWidth / aspectRatio).clamp(540.0, worldHeight);
+
+    // Set up camera with fixed resolution viewport
     camera = CameraComponent.withFixedResolution(
       width: gameWidth,
       height: gameHeight,
     );
+    // Start centered in the world
+    camera.viewfinder.position = Vector2(worldWidth / 2, worldHeight / 2);
 
     // Background
     world.add(BackgroundComponent());
 
-    // Create 6 observation zones at fixed positions
+    // Create 10 observation zones spread across the wider world
     zones = [
-      ObservationZone(position: Vector2(100, 180), label: 'Front Yard Left'),
-      ObservationZone(position: Vector2(340, 140), label: 'Upstairs Window'),
-      ObservationZone(position: Vector2(560, 140), label: 'Upstairs Right'),
-      ObservationZone(position: Vector2(160, 340), label: 'Porch'),
-      ObservationZone(position: Vector2(500, 340), label: 'Driveway'),
-      ObservationZone(position: Vector2(760, 280), label: 'Side Yard'),
+      // Left section
+      ObservationZone(position: Vector2(80, 200), label: 'Far Left Yard'),
+      ObservationZone(position: Vector2(250, 150), label: 'Left Upstairs'),
+      ObservationZone(position: Vector2(180, 380), label: 'Left Porch'),
+      // Center-left
+      ObservationZone(position: Vector2(500, 160), label: 'Center Left Window'),
+      ObservationZone(position: Vector2(450, 400), label: 'Center Driveway'),
+      // Center-right
+      ObservationZone(position: Vector2(800, 150), label: 'Center Right Window'),
+      ObservationZone(position: Vector2(750, 380), label: 'Center Yard'),
+      // Right section
+      ObservationZone(position: Vector2(1100, 160), label: 'Right Upstairs'),
+      ObservationZone(position: Vector2(1050, 400), label: 'Right Porch'),
+      ObservationZone(position: Vector2(1350, 300), label: 'Far Right Yard'),
     ];
     world.addAll(zones);
 
-    // Gerald mutter
+    // Gerald mutter (viewport space so it stays on screen)
     geraldMutter = GeraldMutterComponent();
-    world.add(geraldMutter);
+    camera.viewport.add(geraldMutter);
 
-    // Binocular overlay (rendered on top of everything in world)
+    // Binocular overlay (rendered in VIEWPORT space — stays fixed on screen)
     binocularOverlay = BinocularOverlay();
-    world.add(binocularOverlay);
+    camera.viewport.add(binocularOverlay);
+
+    // CRT overlay (scanlines etc, in viewport space)
+    crtOverlay = CrtOverlay();
+    camera.viewport.add(crtOverlay);
 
     // HUD (added to viewport)
     hud = HudComponent();
@@ -89,6 +122,30 @@ class NeighborhoodWatchGame extends FlameGame {
     // Show main menu
     overlays.add('main_menu');
   }
+
+  // --- Camera Panning ---
+
+  @override
+  void onPanUpdate(DragUpdateInfo info) {
+    if (gameState != GameState.playing) return;
+
+    final delta = info.delta.global;
+    final vf = camera.viewfinder.position;
+
+    // Move camera opposite to drag direction
+    final newX = (vf.x - delta.x * panSensitivity).clamp(
+      gameWidth / 2,
+      worldWidth - gameWidth / 2,
+    );
+    final newY = (vf.y - delta.y * panSensitivity).clamp(
+      gameHeight / 2,
+      worldHeight - gameHeight / 2,
+    );
+
+    camera.viewfinder.position = Vector2(newX, newY);
+  }
+
+  // --- Game Flow ---
 
   void startGame() {
     overlays.remove('main_menu');
@@ -107,6 +164,9 @@ class NeighborhoodWatchGame extends FlameGame {
     for (final zone in zones) {
       zone.clearNpc();
     }
+
+    // Reset camera to center
+    camera.viewfinder.position = Vector2(worldWidth / 2, worldHeight / 2);
 
     gameState = GameState.roundIntro;
     overlays.add('round_intro');
@@ -212,6 +272,8 @@ class NeighborhoodWatchGame extends FlameGame {
   }
 
   void onNpcExpired(Npc npc) {
+    // "MISSED!" popup at NPC position
+    world.add(MissedPopup(worldPosition: npc.absolutePosition));
     // Screen shake for missed NPC
     _screenShake();
   }
@@ -239,12 +301,7 @@ class NeighborhoodWatchGame extends FlameGame {
         EffectController(duration: 0.25, curve: Curves.easeInOut),
       ),
     );
-    camera.viewfinder.add(
-      MoveEffect.to(
-        Vector2(gameWidth / 2, gameHeight / 2),
-        EffectController(duration: 0.25, curve: Curves.easeInOut),
-      ),
-    );
+    // Zoom out back to wherever camera was (don't reset position)
   }
 
   void _screenShake() {
@@ -266,10 +323,23 @@ class NeighborhoodWatchGame extends FlameGame {
       zone.clearNpc();
     }
 
+    gameState = GameState.roundEnd;
+
     if (reportsFiledThisRound >= currentConfig.quota) {
-      // Passed this round
+      // Show round result overlay briefly, then proceed
+      overlays.add('round_result');
+    } else {
+      // Failed — show result then game over
+      overlays.add('round_result');
+    }
+  }
+
+  /// Called from round result overlay after the player acknowledges
+  void onRoundResultDismissed() {
+    overlays.remove('round_result');
+
+    if (reportsFiledThisRound >= currentConfig.quota) {
       if (currentRound >= 4) {
-        // Won the game!
         gameState = GameState.gameOver;
         overlays.add('game_over_win');
       } else {
@@ -277,7 +347,6 @@ class NeighborhoodWatchGame extends FlameGame {
         startRound();
       }
     } else {
-      // Failed
       gameState = GameState.gameOver;
       overlays.add('game_over_lose');
     }

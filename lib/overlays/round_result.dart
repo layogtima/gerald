@@ -2,14 +2,19 @@ import 'package:flutter/material.dart';
 
 import '../game.dart';
 
-class RoundIntroOverlay extends StatelessWidget {
+class RoundResultOverlay extends StatelessWidget {
   final NeighborhoodWatchGame game;
 
-  const RoundIntroOverlay({super.key, required this.game});
+  const RoundResultOverlay({super.key, required this.game});
 
   @override
   Widget build(BuildContext context) {
     final config = game.currentConfig;
+    final passed = game.reportsFiledThisRound >= config.quota;
+
+    final accentColor = passed
+        ? const Color(0xFFFFAA00)
+        : const Color(0xFFFF4444);
 
     return Center(
       child: Container(
@@ -17,27 +22,27 @@ class RoundIntroOverlay extends StatelessWidget {
         decoration: BoxDecoration(
           color: const Color(0xEE0a0a0a),
           borderRadius: BorderRadius.circular(4),
-          border: Border.all(color: const Color(0xFFFFAA00), width: 1),
-          boxShadow: const [
-            BoxShadow(color: Color(0x22FFAA00), blurRadius: 16),
+          border: Border.all(color: accentColor, width: 1),
+          boxShadow: [
+            BoxShadow(color: accentColor.withAlpha(0x33), blurRadius: 16),
           ],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'SHIFT ${game.currentRound + 1}',
-              style: const TextStyle(
-                color: Color(0xFFFFAA00),
-                fontSize: 36,
+              passed ? 'SHIFT COMPLETE' : 'SHIFT FAILED',
+              style: TextStyle(
+                color: accentColor,
+                fontSize: 28,
                 fontWeight: FontWeight.bold,
                 fontFamily: 'monospace',
-                letterSpacing: 6,
+                letterSpacing: 3,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Text(
-              'Quota: ${config.quota} reports',
+              'Reports Filed: ${game.reportsFiledThisRound}/${config.quota}',
               style: const TextStyle(
                 color: Color(0xCCFFAA00),
                 fontSize: 18,
@@ -46,18 +51,21 @@ class RoundIntroOverlay extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              'Time: ${config.roundDurationSeconds.toInt()}s',
-              style: const TextStyle(
-                color: Color(0x88FFAA00),
-                fontSize: 14,
+              passed
+                  ? 'Gerald approves. The neighborhood is "safer."'
+                  : 'Insufficient vigilance detected.',
+              style: TextStyle(
+                color: accentColor.withAlpha(0x99),
+                fontSize: 13,
+                fontStyle: FontStyle.italic,
                 fontFamily: 'monospace',
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () => game.beginPlaying(),
+              onPressed: () => game.onRoundResultDismissed(),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFFAA00),
+                backgroundColor: accentColor,
                 foregroundColor: const Color(0xFF0a0a0a),
                 padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
@@ -65,10 +73,9 @@ class RoundIntroOverlay extends StatelessWidget {
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   fontFamily: 'monospace',
-                  letterSpacing: 2,
                 ),
               ),
-              child: const Text('START WATCHING'),
+              child: Text(passed ? 'NEXT SHIFT' : 'FACE THE CONSEQUENCES'),
             ),
           ],
         ),

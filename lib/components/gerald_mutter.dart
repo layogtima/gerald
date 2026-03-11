@@ -31,11 +31,12 @@ class GeraldMutterComponent extends PositionComponent
 
   @override
   Future<void> onLoad() async {
+    // Positioned in viewport space (bottom center)
     position = Vector2(
       NeighborhoodWatchGame.gameWidth / 2,
-      NeighborhoodWatchGame.gameHeight - 30,
+      game.gameHeight - 60,
     );
-    priority = 80;
+    priority = 180;
   }
 
   @override
@@ -70,9 +71,10 @@ class GeraldMutterComponent extends PositionComponent
       text: TextSpan(
         text: '\u2014 "$_currentMutter"',
         style: TextStyle(
-          color: ui.Color.fromRGBO(255, 255, 255, _mutterOpacity * 0.7),
+          color: ui.Color.fromRGBO(255, 170, 0, _mutterOpacity * 0.6),
           fontSize: 14,
           fontStyle: FontStyle.italic,
+          fontFamily: 'monospace',
         ),
       ),
       textDirection: ui.TextDirection.ltr,

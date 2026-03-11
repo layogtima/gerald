@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flame/components.dart';
 
 import '../data/reports.dart';
@@ -13,7 +11,7 @@ class ObservationZone extends PositionComponent
   Npc? _currentNpc;
 
   ObservationZone({required Vector2 position, required this.label})
-      : super(position: position, size: Vector2(120, 120));
+      : super(position: position, size: Vector2(130, 130));
 
   bool get hasNpc => _currentNpc != null;
 
@@ -37,17 +35,5 @@ class ObservationZone extends PositionComponent
 
   void onNpcRemoved() {
     _currentNpc = null;
-  }
-
-  @override
-  void render(Canvas canvas) {
-    // Debug zone outline (will be invisible in final art)
-    canvas.drawRect(
-      size.toRect(),
-      Paint()
-        ..color = const Color(0x3300FF00)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1,
-    );
   }
 }
