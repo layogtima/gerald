@@ -167,62 +167,18 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // Track Flutter readiness
-    var _flutterReady = false;
-    var _appRunner = null;
-
-    // Start game: show container, then initialize Flutter engine
+    // Start game: show container, load Flutter
     function startGame() {
       document.getElementById('landing').style.display = 'none';
       var gc = document.getElementById('game-container');
       gc.style.display = 'flex';
 
-      if (_flutterReady && _appRunner) {
-        // Flutter already initialized, just run
-        document.getElementById('loading-text')?.remove();
-        _appRunner.runApp();
-      }
-      // Otherwise the load handler below will run the app when ready
+      // Load Flutter bootstrap (sets buildConfig and initializes the engine)
+      var script = document.createElement('script');
+      script.src = 'flutter_bootstrap.js';
+      script.async = true;
+      document.head.appendChild(script);
     }
-  </script>
-
-  <script src="flutter.js" defer></script>
-  <script>
-    window.addEventListener('load', function() {
-      _flutter.loader.load({
-        onEntrypointLoaded: async function(engineInitializer) {
-          var gc = document.getElementById('game-container');
-
-          // Wait for game container to be visible before initializing
-          function tryInit() {
-            if (gc.style.display === 'none') {
-              // Not visible yet, wait for startGame()
-              _flutterReady = true;
-              _appRunner = {
-                runApp: async function() {
-                  document.getElementById('loading-text')?.remove();
-                  var runner = await engineInitializer.initializeEngine({
-                    hostElement: gc,
-                  });
-                  await runner.runApp();
-                }
-              };
-              return;
-            }
-            // Already visible, init immediately
-            (async function() {
-              document.getElementById('loading-text')?.remove();
-              var runner = await engineInitializer.initializeEngine({
-                hostElement: gc,
-              });
-              await runner.runApp();
-            })();
-          }
-
-          tryInit();
-        }
-      });
-    });
   </script>
 </body>
 </html>
