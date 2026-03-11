@@ -246,51 +246,135 @@ class RoundResultOverlay extends StatelessWidget {
   }
 
   String _getOpening(int shift, int tension) {
+    final pool = <String>[];
+
     if (shift == 0) {
       return 'I am writing to confirm that surveillance operations '
           'have commenced as scheduled. The street appears calm.';
-    } else if (shift <= 2 && tension < 30) {
-      return 'I am pleased to report another productive shift. '
-          'The following observations have been documented for your records.';
-    } else if (shift <= 4 && tension < 50) {
-      return 'I must bring several matters to your attention. '
-          'Activity on the street has become irregular.';
-    } else if (tension < 70) {
-      return 'I need to be frank with the Council. '
-          'Things on this street are not what they appear to be. '
-          'I have documented the following.';
-    } else if (tension < 100) {
-      return 'I don\'t know how else to say this. '
-          'Something is happening on this street. '
-          'I am documenting everything I can before it\'s too late.';
-    } else {
-      return 'They know I\'m writing this. '
-          'I can see them looking at my window right now. '
-          'Please read this carefully.';
     }
+
+    if (shift <= 2 && tension < 30) {
+      pool.addAll([
+        'I am pleased to report another productive shift. '
+            'The following observations have been documented for your records.',
+        'The street remains under careful observation. '
+            'I have several items to note from this shift.',
+        'As always, I begin my report with an assurance that '
+            'the situation remains under control. Mostly.',
+      ]);
+    } else if (shift <= 4 && tension < 50) {
+      pool.addAll([
+        'I must bring several matters to your attention. '
+            'Activity on the street has become irregular.',
+        'I hesitated before writing this letter. '
+            'But the Council deserves to know what I have observed.',
+        'This shift was different. I am not sure how to explain it, '
+            'but I will try my best.',
+      ]);
+    } else if (tension < 70) {
+      pool.addAll([
+        'I need to be frank with the Council. '
+            'Things on this street are not what they appear to be.',
+        'I have been going over my notes from previous shifts. '
+            'The pattern is unmistakable.',
+        'Before I begin, I want the Council to know that I am of sound mind. '
+            'What I am about to describe is real.',
+        'I considered not writing this letter. '
+            'But silence would be a disservice to the truth.',
+      ]);
+    } else if (tension < 100) {
+      pool.addAll([
+        'I don\'t know how else to say this. '
+            'Something is happening on this street. '
+            'I am documenting everything I can before it\'s too late.',
+        'I have barricaded the door. Not out of fear \u2014 out of necessity. '
+            'I need uninterrupted time to write this letter.',
+        'The streetlights flickered three times before this shift began. '
+            'I am choosing to interpret this as encouragement.',
+        'I have run out of notebooks. '
+            'I am writing on the back of grocery receipts now. '
+            'The Council will understand.',
+      ]);
+    } else {
+      pool.addAll([
+        'They know I\'m writing this. '
+            'I can see them looking at my window right now. '
+            'Please read this carefully.',
+        'This may be my last letter. Or it may not. '
+            'I have lost the ability to predict what happens next.',
+        'I am writing this in the dark because the lights attract attention. '
+            'Forgive any typos.',
+        'I no longer sleep. Sleep is when they reorganize. '
+            'I have been watching continuously for... I am not sure how long.',
+        'The binoculars have become part of my face. '
+            'I don\'t mean that metaphorically.',
+      ]);
+    }
+
+    return pool[shift % pool.length];
   }
 
   String _getClosing(int shift, int tension) {
+    final pool = <String>[];
+
     if (shift == 0) {
       return 'I look forward to a long and productive partnership '
           'with the Council. The street is in good hands.';
-    } else if (tension < 25) {
-      return 'I trust the Council will take appropriate action. '
-          'I remain at my post.';
-    } else if (tension < 50) {
-      return 'I await your guidance on these matters. '
-          'The situation may require additional resources.';
-    } else if (tension < 75) {
-      return 'I urge the Council to review these findings immediately. '
-          'I am beginning to notice patterns that concern me deeply.';
-    } else if (tension < 100) {
-      return 'Has the Council received my previous letters? '
-          'I have not received a response. '
-          'Please confirm that someone is reading these.';
-    } else {
-      return 'I no longer know if the Council exists. '
-          'I am writing this for the record. '
-          'If you find this letter, know that Gerald tried.';
     }
+
+    if (tension < 25) {
+      pool.addAll([
+        'I trust the Council will take appropriate action. '
+            'I remain at my post.',
+        'All in all, a satisfactory shift. '
+            'I expect the next one will be equally uneventful.',
+        'The street sleeps. And so, shortly, will I. '
+            'But the binoculars will be ready at dawn.',
+      ]);
+    } else if (tension < 50) {
+      pool.addAll([
+        'I await your guidance on these matters. '
+            'The situation may require additional resources.',
+        'I would appreciate any feedback on my methods. '
+            'I want to ensure my reports meet the Council\'s standards.',
+        'If the Council could send someone to verify my findings, '
+            'I would welcome the company. And the validation.',
+      ]);
+    } else if (tension < 75) {
+      pool.addAll([
+        'I urge the Council to review these findings immediately. '
+            'I am beginning to notice patterns that concern me deeply.',
+        'I have attached a diagram to this letter. '
+            'It is drawn on the back. The connections speak for themselves.',
+        'I am not asking for reassurance. I am asking for acknowledgment '
+            'that someone, somewhere, is paying attention.',
+      ]);
+    } else if (tension < 100) {
+      pool.addAll([
+        'Has the Council received my previous letters? '
+            'I have not received a response. '
+            'Please confirm that someone is reading these.',
+        'I have started numbering my letters. This is number ${shift + 1}. '
+            'If any are missing from the Council\'s records, we have a problem.',
+        'The mailbox has started to feel like a one-way mirror. '
+            'I put letters in. Nothing comes out. '
+            'But someone is collecting them. I can tell.',
+      ]);
+    } else {
+      pool.addAll([
+        'I no longer know if the Council exists. '
+            'I am writing this for the record. '
+            'If you find this letter, know that Gerald tried.',
+        'Perhaps the letters themselves are the point. '
+            'Perhaps writing is the watching, and watching is the writing. '
+            'I have confused myself.',
+        'I will keep writing. Not because anyone is reading, '
+            'but because someone should be.',
+        'The street outside my window is the same street it has always been. '
+            'Or is it? I have written too many letters to remember.',
+      ]);
+    }
+
+    return pool[shift % pool.length];
   }
 }

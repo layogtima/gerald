@@ -7,6 +7,7 @@ import '../game.dart';
 
 /// Draws a realistic binocular vignette — two soft-edged circles with blurred
 /// falloff, bright centers, and natural overlap. No hard borders.
+/// Reacts to tension: tighter grip, tunnel vision, paranoia.
 class BinocularOverlay extends PositionComponent
     with HasGameReference<NeighborhoodWatchGame> {
   @override
@@ -20,7 +21,32 @@ class BinocularOverlay extends PositionComponent
     final w = size.x;
     final h = size.y;
     final shortSide = w < h ? w : h;
-    final radius = shortSide * 0.52;
+    final tension = game.tension;
+
+    // Tension-reactive parameters
+    double radiusFactor;
+    int darkOverlayAlpha;
+    bool showRedTint;
+
+    if (tension >= 90) {
+      radiusFactor = 0.45;
+      darkOverlayAlpha = 0xFA;
+      showRedTint = true;
+    } else if (tension >= 60) {
+      radiusFactor = 0.48;
+      darkOverlayAlpha = 0xF5;
+      showRedTint = false;
+    } else if (tension >= 30) {
+      radiusFactor = 0.50;
+      darkOverlayAlpha = 0xF5;
+      showRedTint = false;
+    } else {
+      radiusFactor = 0.52;
+      darkOverlayAlpha = 0xF0;
+      showRedTint = false;
+    }
+
+    final radius = shortSide * radiusFactor;
     final separation = w * 0.12;
 
     final leftCenter = ui.Offset(w / 2 - separation, h / 2);
@@ -30,8 +56,9 @@ class BinocularOverlay extends PositionComponent
     // Use saveLayer for compositing: draw dark overlay, then punch soft holes
     canvas.saveLayer(fullRect, ui.Paint());
 
-    // Dark surrounding overlay
-    canvas.drawRect(fullRect, ui.Paint()..color = const ui.Color(0xF0000000));
+    // Dark surrounding overlay — darkens with tension
+    canvas.drawRect(
+        fullRect, ui.Paint()..color = ui.Color.fromARGB(darkOverlayAlpha, 0, 0, 0));
 
     // Punch out left lens with soft radial gradient (dstOut erases the dark layer)
     final lensGradient = RadialGradient(
@@ -105,5 +132,27 @@ class BinocularOverlay extends PositionComponent
         ..shader = tintGradient
             .createShader(ui.Rect.fromCircle(center: rightCenter, radius: radius)),
     );
+
+    // Tension 90+: red tint on lens edges (paranoia creeping in)
+    if (showRedTint) {
+      final redTintGradient = RadialGradient(
+        colors: const [ui.Color(0x00000000), ui.Color(0x15FF2000)],
+        stops: const [0.4, 1.0],
+      );
+      canvas.drawCircle(
+        leftCenter,
+        radius,
+        ui.Paint()
+          ..shader = redTintGradient.createShader(
+              ui.Rect.fromCircle(center: leftCenter, radius: radius)),
+      );
+      canvas.drawCircle(
+        rightCenter,
+        radius,
+        ui.Paint()
+          ..shader = redTintGradient.createShader(
+              ui.Rect.fromCircle(center: rightCenter, radius: radius)),
+      );
+    }
   }
 }

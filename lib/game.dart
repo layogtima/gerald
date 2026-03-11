@@ -10,6 +10,7 @@ import 'package:flutter/animation.dart';
 import 'components/background.dart';
 import 'components/binocular_overlay.dart';
 import 'components/crt_overlay.dart';
+import 'components/focus_slider.dart';
 import 'components/gerald_mutter.dart';
 import 'components/hud.dart';
 import 'components/npc.dart';
@@ -26,9 +27,20 @@ enum GameState {
   reportOpen,
   roundEnd,
   gameOver,
+  evidenceBoard,
 }
 
-class NeighborhoodWatchGame extends FlameGame with PanDetector {
+/// Evidence photo — captured by double-tapping an NPC.
+class EvidencePhoto {
+  final ActivityData activity;
+  final int shift;
+  EvidencePhoto({required this.activity, required this.shift});
+}
+
+/// Vision mode for the binoculars.
+enum VisionMode { normal, nightVision, thermal }
+
+class NeighborhoodWatchGame extends FlameGame with PanDetector, ScaleDetector {
   // Viewport width is fixed; height adapts to screen aspect ratio
   static const double gameWidth = 960;
   late double gameHeight;
@@ -61,6 +73,17 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
   // Activity pool depletion — once interacted, never appears again
   Set<Activity> usedActivities = {};
 
+  // Evidence board — photos persist across shifts
+  List<EvidencePhoto> evidencePhotos = [];
+
+  // Vision mode
+  VisionMode visionMode = VisionMode.normal;
+
+  // Pinch-to-zoom state
+  double _currentZoomLevel = 1.0;
+  static const double _minZoom = 1.0;
+  static const double _maxZoom = 3.0;
+
   // NPC spawn tracking
   int _npcsSpawnedThisRound = 0;
 
@@ -78,6 +101,7 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
   late GeraldMutterComponent geraldMutter;
   late BinocularOverlay binocularOverlay;
   late CrtOverlay crtOverlay;
+  late FocusSliderComponent focusSlider;
 
   RoundConfig get currentConfig => configForShift(currentRound);
 
@@ -126,9 +150,13 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
     ];
     world.addAll(zones);
 
-    // Gerald mutter (viewport space — disabled but kept for API compat)
+    // Gerald mutter (viewport space)
     geraldMutter = GeraldMutterComponent();
     camera.viewport.add(geraldMutter);
+
+    // Focus slider (viewport space, visible when zoomed)
+    focusSlider = FocusSliderComponent();
+    camera.viewport.add(focusSlider);
 
     // Binocular overlay
     binocularOverlay = BinocularOverlay();
@@ -150,21 +178,62 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
 
   @override
   void onPanUpdate(DragUpdateInfo info) {
-    if (gameState != GameState.playing) return;
+    if (gameState == GameState.evidenceBoard) return;
+    if (gameState != GameState.playing && gameState != GameState.reportOpen) {
+      return;
+    }
 
     final delta = info.delta.global;
-    final vf = camera.viewfinder.position;
 
-    final newX = (vf.x - delta.x * panSensitivity).clamp(
-      gameWidth / 2,
-      worldWidth - gameWidth / 2,
+    // If zoomed in for report, handle focus slider drag
+    if (isZoomedIn) {
+      focusSlider.onDrag(-delta.y);
+      return;
+    }
+
+    final vf = camera.viewfinder.position;
+    final sensitivity = panSensitivity / _currentZoomLevel;
+    final newX = (vf.x - delta.x * sensitivity).clamp(
+      gameWidth / (2 * _currentZoomLevel),
+      worldWidth - gameWidth / (2 * _currentZoomLevel),
     );
-    final newY = (vf.y - delta.y * panSensitivity).clamp(
-      gameHeight / 2,
-      worldHeight - gameHeight / 2,
+    final newY = (vf.y - delta.y * sensitivity).clamp(
+      gameHeight / (2 * _currentZoomLevel),
+      worldHeight - gameHeight / (2 * _currentZoomLevel),
     );
 
     camera.viewfinder.position = Vector2(newX, newY);
+  }
+
+  // --- Pinch-to-Zoom ---
+
+  @override
+  void onScaleUpdate(ScaleUpdateInfo info) {
+    if (gameState != GameState.playing || isZoomedIn) return;
+
+    final scale = info.scale.global;
+    if (scale.x == 1.0 && scale.y == 1.0) return; // Not a pinch
+
+    final avgScale = (scale.x + scale.y) / 2;
+    final newZoom = (_currentZoomLevel * avgScale).clamp(_minZoom, _maxZoom);
+
+    if ((newZoom - _currentZoomLevel).abs() > 0.01) {
+      _currentZoomLevel = newZoom;
+      camera.viewfinder.zoom = _currentZoomLevel;
+
+      // Clamp viewfinder position to new bounds
+      final vf = camera.viewfinder.position;
+      camera.viewfinder.position = Vector2(
+        vf.x.clamp(
+          gameWidth / (2 * _currentZoomLevel),
+          worldWidth - gameWidth / (2 * _currentZoomLevel),
+        ),
+        vf.y.clamp(
+          gameHeight / (2 * _currentZoomLevel),
+          worldHeight - gameHeight / (2 * _currentZoomLevel),
+        ),
+      );
+    }
   }
 
   // --- Game Flow ---
@@ -176,6 +245,12 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
     lastDeadEnd = null;
     usedActivities = {};
     allReports = [];
+    evidencePhotos = [];
+    visionMode = VisionMode.normal;
+    _currentZoomLevel = 1.0;
+    camera.viewfinder.zoom = 1.0;
+    crtOverlay.nightVisionActive = false;
+    crtOverlay.thermalActive = false;
     startRound();
   }
 
@@ -192,7 +267,9 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
       zone.clearNpc();
     }
 
-    // Reset camera to center
+    // Reset camera to center, reset manual zoom
+    _currentZoomLevel = 1.0;
+    camera.viewfinder.zoom = 1.0;
     camera.viewfinder.position = Vector2(worldWidth / 2, worldHeight / 2);
 
     gameState = GameState.roundIntro;
@@ -267,8 +344,33 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
     npc.freezeTimer();
     gameState = GameState.reportOpen;
 
+    // Show focus slider
+    focusSlider.visible = true;
+    focusSlider.focusLevel = 0.5;
+
     _zoomIn(npc);
     overlays.add('report_ui');
+  }
+
+  /// Double-tap to photograph an NPC for the evidence board.
+  void onNpcDoubleTapped(Npc npc) {
+    if (gameState != GameState.playing) return;
+
+    // Check if already photographed
+    final alreadyHave = evidencePhotos
+        .any((p) => p.activity.activity == npc.activityData.activity);
+    if (alreadyHave) return;
+
+    evidencePhotos.add(EvidencePhoto(
+      activity: npc.activityData,
+      shift: currentRound,
+    ));
+
+    // Flash effect on NPC (visual feedback)
+    npc.flashCapture();
+
+    // Gerald reacts
+    geraldMutter.triggerReaction(tension);
   }
 
   void onReportFiled(ReportOption report) {
@@ -287,6 +389,12 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
 
     // Mark activity as used — never spawns again
     usedActivities.add(observedNpc!.activityData.activity);
+
+    // Gerald mutters a reaction
+    geraldMutter.triggerReaction(tension);
+
+    // Hide focus slider
+    focusSlider.visible = false;
 
     // Check for dead-end
     if (report.deadEnd != null) {
@@ -316,6 +424,12 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
       observedNpc = null;
     }
 
+    // Hide focus slider
+    focusSlider.visible = false;
+
+    // Gerald mutters about dismissal
+    geraldMutter.triggerDismiss();
+
     overlays.remove('report_ui');
     _zoomOut();
     isZoomedIn = false;
@@ -323,8 +437,43 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
   }
 
   void onNpcExpired(Npc npc) {
-    // NPCs expire silently
+    // Gerald mutters about missing one
+    geraldMutter.triggerMissed();
   }
+
+  // --- Vision Mode ---
+
+  void cycleVisionMode() {
+    switch (visionMode) {
+      case VisionMode.normal:
+        visionMode = VisionMode.nightVision;
+        crtOverlay.nightVisionActive = true;
+        crtOverlay.thermalActive = false;
+      case VisionMode.nightVision:
+        visionMode = VisionMode.thermal;
+        crtOverlay.nightVisionActive = false;
+        crtOverlay.thermalActive = true;
+      case VisionMode.thermal:
+        visionMode = VisionMode.normal;
+        crtOverlay.nightVisionActive = false;
+        crtOverlay.thermalActive = false;
+    }
+  }
+
+  // --- Evidence Board ---
+
+  void openEvidenceBoard() {
+    if (gameState != GameState.playing) return;
+    gameState = GameState.evidenceBoard;
+    overlays.add('evidence_board');
+  }
+
+  void closeEvidenceBoard() {
+    overlays.remove('evidence_board');
+    gameState = GameState.playing;
+  }
+
+  // --- Zoom ---
 
   void _zoomIn(Npc npc) {
     final npcWorldPos = npc.absolutePosition;
@@ -345,7 +494,7 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
   void _zoomOut() {
     camera.viewfinder.add(
       ScaleEffect.to(
-        Vector2.all(1.0),
+        Vector2.all(_currentZoomLevel),
         EffectController(duration: 0.25, curve: Curves.easeInOut),
       ),
     );

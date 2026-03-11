@@ -5,7 +5,32 @@ import 'package:flutter/painting.dart' show Alignment, LinearGradient;
 
 import '../game.dart';
 
-/// Draws a wider suburban street background (1920x800) at night.
+/// Data class for time-of-day visual parameters.
+class _TimeColors {
+  final Color skyTop;
+  final Color skyBottom;
+  final double starOpacity;
+  final double moonGlowAlpha;
+  final Color windowGlow;
+  final double lampGlowAlpha;
+  final Color treeTint;
+  final Color grassColor;
+  final Color lowerGrassColor;
+
+  const _TimeColors({
+    required this.skyTop,
+    required this.skyBottom,
+    required this.starOpacity,
+    required this.moonGlowAlpha,
+    required this.windowGlow,
+    required this.lampGlowAlpha,
+    required this.treeTint,
+    required this.grassColor,
+    required this.lowerGrassColor,
+  });
+}
+
+/// Draws a wider suburban street background (1920x800) with day/night cycle.
 /// Amit will replace this with proper art.
 class BackgroundComponent extends PositionComponent
     with HasGameReference<NeighborhoodWatchGame> {
@@ -17,23 +42,114 @@ class BackgroundComponent extends PositionComponent
     priority = -10;
   }
 
+  _TimeColors _getTimeColors() {
+    final shift = game.currentRound;
+
+    if (shift == 0) {
+      // Evening/dusk — warm orange-purple sky, golden light
+      return const _TimeColors(
+        skyTop: Color(0xFF2a1040),
+        skyBottom: Color(0xFF8a4520),
+        starOpacity: 0.15,
+        moonGlowAlpha: 0.15,
+        windowGlow: Color(0xFF886030),
+        lampGlowAlpha: 0.06,
+        treeTint: Color(0xFF1a2810),
+        grassColor: Color(0xFF1e3018),
+        lowerGrassColor: Color(0xFF182818),
+      );
+    } else if (shift <= 2) {
+      // Twilight — dark blue sky, some warm glow on horizon
+      return const _TimeColors(
+        skyTop: Color(0xFF08082a),
+        skyBottom: Color(0xFF1a2848),
+        starOpacity: 0.4,
+        moonGlowAlpha: 0.25,
+        windowGlow: Color(0xFF705828),
+        lampGlowAlpha: 0.08,
+        treeTint: Color(0xFF0c1a0c),
+        grassColor: Color(0xFF1a2a1a),
+        lowerGrassColor: Color(0xFF152215),
+      );
+    } else if (shift <= 4) {
+      // Night — current dark look
+      return const _TimeColors(
+        skyTop: Color(0xFF0a0a1e),
+        skyBottom: Color(0xFF16213e),
+        starOpacity: 0.55,
+        moonGlowAlpha: 0.35,
+        windowGlow: Color(0xFF665020),
+        lampGlowAlpha: 0.04,
+        treeTint: Color(0xFF0e1e0e),
+        grassColor: Color(0xFF1a2e1a),
+        lowerGrassColor: Color(0xFF152415),
+      );
+    } else if (shift <= 6) {
+      // Deep night — even darker, more stars visible
+      return const _TimeColors(
+        skyTop: Color(0xFF050510),
+        skyBottom: Color(0xFF0a0f20),
+        starOpacity: 0.85,
+        moonGlowAlpha: 0.45,
+        windowGlow: Color(0xFF443010),
+        lampGlowAlpha: 0.03,
+        treeTint: Color(0xFF081408),
+        grassColor: Color(0xFF102010),
+        lowerGrassColor: Color(0xFF0c180c),
+      );
+    } else {
+      // Strange hours — slightly unnatural sky tints
+      // Alternate between greenish and reddish based on odd/even shift
+      if (shift % 2 == 1) {
+        // Greenish tint
+        return const _TimeColors(
+          skyTop: Color(0xFF0a1a10),
+          skyBottom: Color(0xFF102a18),
+          starOpacity: 0.7,
+          moonGlowAlpha: 0.4,
+          windowGlow: Color(0xFF406030),
+          lampGlowAlpha: 0.05,
+          treeTint: Color(0xFF0a200a),
+          grassColor: Color(0xFF0e2a12),
+          lowerGrassColor: Color(0xFF0a200e),
+        );
+      } else {
+        // Reddish tint
+        return const _TimeColors(
+          skyTop: Color(0xFF1a0a0a),
+          skyBottom: Color(0xFF2a1018),
+          starOpacity: 0.6,
+          moonGlowAlpha: 0.35,
+          windowGlow: Color(0xFF804020),
+          lampGlowAlpha: 0.05,
+          treeTint: Color(0xFF1a0e0a),
+          grassColor: Color(0xFF201a14),
+          lowerGrassColor: Color(0xFF1a1410),
+        );
+      }
+    }
+  }
+
   @override
   void render(Canvas canvas) {
     final w = size.x;
     final h = size.y;
+    final tc = _getTimeColors();
 
-    // Sky gradient — dark night
+    // Sky gradient — shifts with time of day
     final skyPaint = Paint()
-      ..shader = const LinearGradient(
+      ..shader = LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [Color(0xFF0a0a1e), Color(0xFF16213e)],
+        colors: [tc.skyTop, tc.skyBottom],
       ).createShader(Rect.fromLTWH(0, 0, w, h * 0.45));
     canvas.drawRect(Rect.fromLTWH(0, 0, w, h * 0.45), skyPaint);
 
-    // Stars
-    final starPaint = Paint()..color = const Color(0x88FFFFFF);
-    final dimStar = Paint()..color = const Color(0x44FFFFFF);
+    // Stars — opacity varies with time of day
+    final starAlpha = (0x88 * tc.starOpacity).round().clamp(0, 255);
+    final dimAlpha = (0x44 * tc.starOpacity).round().clamp(0, 255);
+    final starPaint = Paint()..color = Color.fromARGB(starAlpha, 255, 255, 255);
+    final dimStar = Paint()..color = Color.fromARGB(dimAlpha, 255, 255, 255);
     final stars = [
       const Offset(50, 30), const Offset(150, 60), const Offset(280, 20),
       const Offset(420, 50), const Offset(550, 15), const Offset(680, 45),
@@ -49,11 +165,13 @@ class BackgroundComponent extends PositionComponent
           i % 2 == 0 ? starPaint : dimStar);
     }
 
-    // Moon
+    // Moon — glow intensity varies
+    final moonOuterAlpha = (0x33 * tc.moonGlowAlpha / 0.35).round().clamp(0, 255);
+    final moonInnerAlpha = (0x55 * tc.moonGlowAlpha / 0.35).round().clamp(0, 255);
     canvas.drawCircle(
-        const Offset(1600, 60), 25, Paint()..color = const Color(0x33FFFFCC));
+        const Offset(1600, 60), 25, Paint()..color = Color.fromARGB(moonOuterAlpha, 255, 255, 204));
     canvas.drawCircle(
-        const Offset(1600, 60), 22, Paint()..color = const Color(0x55FFFFDD));
+        const Offset(1600, 60), 22, Paint()..color = Color.fromARGB(moonInnerAlpha, 255, 255, 221));
 
     // Distant treeline silhouette
     for (var x = 0.0; x < w; x += 25) {
@@ -64,14 +182,14 @@ class BackgroundComponent extends PositionComponent
           width: 24,
           height: treeH,
         ),
-        Paint()..color = const Color(0xFF0e1e0e),
+        Paint()..color = tc.treeTint,
       );
     }
 
-    // Grass — dark night green
+    // Grass — shifts with time of day
     canvas.drawRect(
       Rect.fromLTWH(0, h * 0.45, w, h * 0.55),
-      Paint()..color = const Color(0xFF1a2e1a),
+      Paint()..color = tc.grassColor,
     );
 
     // Upper sidewalk
@@ -105,22 +223,22 @@ class BackgroundComponent extends PositionComponent
     // Lower grass
     canvas.drawRect(
       Rect.fromLTWH(0, h * 0.70, w, h * 0.30),
-      Paint()..color = const Color(0xFF152415),
+      Paint()..color = tc.lowerGrassColor,
     );
 
     // --- Houses (6 across the scene) ---
     _drawHouse(canvas, 40, 120, 200, 230, const Color(0xFF5a4a3a),
-        const Color(0xFF3a2218));
+        const Color(0xFF3a2218), tc);
     _drawHouse(canvas, 300, 100, 210, 250, const Color(0xFF504838),
-        const Color(0xFF321a10));
+        const Color(0xFF321a10), tc);
     _drawHouse(canvas, 600, 130, 190, 220, const Color(0xFF5a5040),
-        const Color(0xFF3a2218));
+        const Color(0xFF3a2218), tc);
     _drawHouse(canvas, 880, 110, 220, 240, const Color(0xFF4a4030),
-        const Color(0xFF321a10));
+        const Color(0xFF321a10), tc);
     _drawHouse(canvas, 1180, 125, 200, 225, const Color(0xFF584838),
-        const Color(0xFF3a2018));
+        const Color(0xFF3a2018), tc);
     _drawHouse(canvas, 1480, 105, 230, 245, const Color(0xFF504838),
-        const Color(0xFF321810));
+        const Color(0xFF321810), tc);
 
     // Fences
     _drawFence(canvas, 250, h * 0.48, 40, 35);
@@ -151,15 +269,15 @@ class BackgroundComponent extends PositionComponent
     _drawMailbox(canvas, 1450, h * 0.50);
 
     // Street lamps with glow
-    _drawStreetLamp(canvas, 200, h * 0.42);
-    _drawStreetLamp(canvas, 550, h * 0.42);
-    _drawStreetLamp(canvas, 900, h * 0.42);
-    _drawStreetLamp(canvas, 1300, h * 0.42);
-    _drawStreetLamp(canvas, 1700, h * 0.42);
+    _drawStreetLamp(canvas, 200, h * 0.42, tc);
+    _drawStreetLamp(canvas, 550, h * 0.42, tc);
+    _drawStreetLamp(canvas, 900, h * 0.42, tc);
+    _drawStreetLamp(canvas, 1300, h * 0.42, tc);
+    _drawStreetLamp(canvas, 1700, h * 0.42, tc);
   }
 
   void _drawHouse(Canvas canvas, double x, double y, double w, double h,
-      Color wallColor, Color roofColor) {
+      Color wallColor, Color roofColor, _TimeColors tc) {
     canvas.drawRect(Rect.fromLTWH(x, y, w, h), Paint()..color = wallColor);
     canvas.drawRect(
       Rect.fromLTWH(x, y, w, h),
@@ -190,19 +308,20 @@ class BackgroundComponent extends PositionComponent
     );
 
     // Windows (warm glow at night)
-    _drawWindow(canvas, x + 20, y + 30, 35, 30);
-    _drawWindow(canvas, x + w - 55, y + 30, 35, 30);
+    _drawWindow(canvas, x + 20, y + 30, 35, 30, tc);
+    _drawWindow(canvas, x + w - 55, y + 30, 35, 30, tc);
     if (h > 200) {
-      _drawWindow(canvas, x + 20, y + 90, 35, 30);
-      _drawWindow(canvas, x + w - 55, y + 90, 35, 30);
+      _drawWindow(canvas, x + 20, y + 90, 35, 30, tc);
+      _drawWindow(canvas, x + w - 55, y + 90, 35, 30, tc);
     }
   }
 
-  void _drawWindow(Canvas canvas, double x, double y, double w, double h) {
-    // Warm interior glow
+  void _drawWindow(Canvas canvas, double x, double y, double w, double h,
+      _TimeColors tc) {
+    // Warm interior glow — varies with time of day
     canvas.drawRect(
       Rect.fromLTWH(x, y, w, h),
-      Paint()..color = const Color(0xFF665020),
+      Paint()..color = tc.windowGlow,
     );
     canvas.drawRect(
       Rect.fromLTWH(x, y, w, h),
@@ -267,7 +386,7 @@ class BackgroundComponent extends PositionComponent
     );
   }
 
-  void _drawStreetLamp(Canvas canvas, double x, double y) {
+  void _drawStreetLamp(Canvas canvas, double x, double y, _TimeColors tc) {
     // Pole
     canvas.drawRect(
       Rect.fromLTWH(x - 2, y, 4, 80),
@@ -278,14 +397,16 @@ class BackgroundComponent extends PositionComponent
       Rect.fromLTWH(x - 8, y - 4, 16, 6),
       Paint()..color = const Color(0xFF555555),
     );
-    // Light glow (concentric circles)
+    // Light glow (concentric circles) — intensity varies with time
+    final outerAlpha = (0x0A + (tc.lampGlowAlpha * 255).round()).clamp(0, 255);
+    final innerAlpha = (0x15 + (tc.lampGlowAlpha * 255).round()).clamp(0, 255);
     canvas.drawCircle(
       Offset(x, y + 4), 40,
-      Paint()..color = const Color(0x0AFFDD88),
+      Paint()..color = Color.fromARGB(outerAlpha, 255, 221, 136),
     );
     canvas.drawCircle(
       Offset(x, y + 4), 20,
-      Paint()..color = const Color(0x15FFDD88),
+      Paint()..color = Color.fromARGB(innerAlpha, 255, 221, 136),
     );
     // Bulb
     canvas.drawCircle(

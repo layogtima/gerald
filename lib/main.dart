@@ -2,6 +2,7 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
 import 'game.dart';
+import 'overlays/evidence_board.dart';
 import 'overlays/game_over.dart';
 import 'overlays/main_menu.dart';
 import 'overlays/report_ui.dart';
@@ -37,6 +38,8 @@ class NeighborhoodWatchApp extends StatelessWidget {
                 RoundResultOverlay(game: game as NeighborhoodWatchGame),
             'game_over': (context, game) =>
                 GameOverOverlay(game: game as NeighborhoodWatchGame),
+            'evidence_board': (context, game) =>
+                EvidenceBoardOverlay(game: game as NeighborhoodWatchGame),
           },
         ),
       ),

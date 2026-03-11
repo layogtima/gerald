@@ -12,8 +12,9 @@ import 'observation_zone.dart';
 
 /// An NPC that appears in a zone doing an activity.
 /// Placeholder: colored rectangle with activity label.
+/// Supports single-tap (observe) and double-tap (photograph).
 class Npc extends PositionComponent
-    with TapCallbacks, HasPaint, HasGameReference<NeighborhoodWatchGame> {
+    with TapCallbacks, DoubleTapCallbacks, HasPaint, HasGameReference<NeighborhoodWatchGame> {
   final ActivityData activityData;
   final double visibilitySeconds;
   final ObservationZone parentZone;
@@ -21,6 +22,7 @@ class Npc extends PositionComponent
   double _timer = 0;
   bool _frozen = false;
   bool _expired = false;
+  double _flashAlpha = 0; // Camera flash effect
 
   bool get _isWindow => parentZone.zoneType == ZoneType.window;
 
@@ -53,6 +55,11 @@ class Npc extends PositionComponent
   void update(double dt) {
     super.update(dt);
 
+    // Decay flash
+    if (_flashAlpha > 0) {
+      _flashAlpha = (_flashAlpha - dt * 3).clamp(0.0, 1.0);
+    }
+
     if (_frozen || _expired) return;
 
     _timer += dt;
@@ -67,6 +74,11 @@ class Npc extends PositionComponent
 
   void unfreezeTimer() {
     _frozen = false;
+  }
+
+  /// Flash white briefly — camera shutter effect when photographed.
+  void flashCapture() {
+    _flashAlpha = 1.0;
   }
 
   void _expire() {
@@ -88,6 +100,12 @@ class Npc extends PositionComponent
   void onTapUp(TapUpEvent event) {
     if (_expired) return;
     game.onNpcTapped(this);
+  }
+
+  @override
+  void onDoubleTapDown(DoubleTapDownEvent event) {
+    if (_expired) return;
+    game.onNpcDoubleTapped(this);
   }
 
   @override
@@ -175,5 +193,16 @@ class Npc extends PositionComponent
       ui.Offset(size.x / 2 - labelPainter.width / 2, size.y * 0.6),
     );
 
+    // Camera flash overlay (white flash when photographed)
+    if (_flashAlpha > 0) {
+      final flashAlphaInt = (_flashAlpha * alpha).round().clamp(0, 255);
+      canvas.drawRRect(
+        ui.RRect.fromRectAndRadius(
+          ui.Rect.fromLTWH(-8, -headRadius * 2, size.x + 16, size.y + headRadius * 2 + 8),
+          const ui.Radius.circular(12),
+        ),
+        ui.Paint()..color = ui.Color.fromARGB(flashAlphaInt, 255, 255, 255),
+      );
+    }
   }
 }
