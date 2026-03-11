@@ -10,8 +10,7 @@ class CrtOverlay extends PositionComponent
     with HasGameReference<NeighborhoodWatchGame> {
   @override
   Future<void> onLoad() async {
-    size = Vector2(
-        NeighborhoodWatchGame.gameWidth, NeighborhoodWatchGame.gameHeight);
+    size = Vector2(NeighborhoodWatchGame.gameWidth, game.gameHeight);
     priority = 150;
   }
 

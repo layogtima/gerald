@@ -34,7 +34,7 @@ class GeraldMutterComponent extends PositionComponent
     // Positioned in viewport space (bottom center)
     position = Vector2(
       NeighborhoodWatchGame.gameWidth / 2,
-      NeighborhoodWatchGame.gameHeight - 60,
+      game.gameHeight - 60,
     );
     priority = 180;
   }

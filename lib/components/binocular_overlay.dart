@@ -12,7 +12,7 @@ class BinocularOverlay extends PositionComponent
   @override
   Future<void> onLoad() async {
     // Use viewport dimensions (what the camera shows), not world dimensions
-    size = Vector2(NeighborhoodWatchGame.gameWidth, NeighborhoodWatchGame.gameHeight);
+    size = Vector2(NeighborhoodWatchGame.gameWidth, game.gameHeight);
     priority = 100; // Always on top
   }
 

@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui' as ui;
 
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
@@ -28,9 +29,9 @@ enum GameState {
 }
 
 class NeighborhoodWatchGame extends FlameGame with PanDetector {
-  // Viewport (what the camera shows)
+  // Viewport width is fixed; height adapts to screen aspect ratio
   static const double gameWidth = 960;
-  static const double gameHeight = 540;
+  late double gameHeight;
 
   // World (full scene, larger than viewport)
   static const double worldWidth = 1920;
@@ -66,6 +67,12 @@ class NeighborhoodWatchGame extends FlameGame with PanDetector {
 
   @override
   Future<void> onLoad() async {
+    // Compute viewport height from screen aspect ratio, capped at world height
+    final view = ui.PlatformDispatcher.instance.views.first;
+    final screenSize = view.physicalSize / view.devicePixelRatio;
+    final aspectRatio = screenSize.width / screenSize.height;
+    gameHeight = (gameWidth / aspectRatio).clamp(540.0, worldHeight);
+
     // Set up camera with fixed resolution viewport
     camera = CameraComponent.withFixedResolution(
       width: gameWidth,
